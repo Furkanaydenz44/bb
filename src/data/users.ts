@@ -1,0 +1,38 @@
+import type { User } from './types';
+
+export const users: User[] = [
+  {
+    id: 'ahmetsafak',
+    username: 'ahmetsafak',
+    name: 'Ahmet Şafak',
+    avatar: 'AŞ',
+    city: 'İstanbul',
+    credits: 120,
+    score: 4.8,
+    reviews: 38,
+    sales: 34,
+    responseTime: '~1 saat',
+    completionRate: 98,
+    trustSignals: ['Doğrulanmış', 'Güvenilir Satıcı', 'Hızlı Kargolayan', 'Sunum Kalitesi Yüksek'],
+  },
+  {
+    id: 'furkan',
+    username: 'furkan',
+    name: 'Furkan Aydeniz',
+    avatar: 'FD',
+    city: 'İstanbul',
+    credits: 90,
+    score: 4.6,
+    reviews: 21,
+    sales: 18,
+    responseTime: '~2 saat',
+    completionRate: 95,
+    trustSignals: ['Doğrulanmış', 'Sunum Kalitesi Yüksek'],
+  },
+  { id: 'derya', username: 'derya', name: 'Derya Soysal', avatar: 'DS', city: 'İzmir', credits: 60, score: 4.9, reviews: 42, sales: 51, responseTime: '~45 dk', completionRate: 99, trustSignals: ['Doğrulanmış', 'Hızlı Kargolayan'] },
+  { id: 'emre', username: 'emre', name: 'Emre Kaya', avatar: 'EK', city: 'İstanbul', credits: 45, score: 4.7, reviews: 18, sales: 28, responseTime: '~3 saat', completionRate: 94, trustSignals: ['Sunum Kalitesi Yüksek'] },
+  { id: 'murat', username: 'murat', name: 'Murat Arslan', avatar: 'MA', city: 'İzmir', credits: 35, score: 4.6, reviews: 12, sales: 15, responseTime: '~4 saat', completionRate: 92, trustSignals: ['Doğrulanmış'] },
+  { id: 'kaan', username: 'kaan', name: 'Kaan Vural', avatar: 'KV', city: 'İstanbul', credits: 50, score: 4.6, reviews: 16, sales: 22, responseTime: '~2 saat', completionRate: 93, trustSignals: ['Aktif Alıcı'] },
+  { id: 'selin', username: 'selin', name: 'Selin Aydın', avatar: 'SA', city: 'İstanbul', credits: 40, score: 4.8, reviews: 24, sales: 19, responseTime: '~1 saat', completionRate: 97, trustSignals: ['Güçlü Alıcı'] },
+  { id: 'can', username: 'can', name: 'Can Eren', avatar: 'CE', city: 'Bursa', credits: 32, score: 4.5, reviews: 9, sales: 11, responseTime: '~5 saat', completionRate: 90, trustSignals: ['Doğrulanmış'] },
+];
