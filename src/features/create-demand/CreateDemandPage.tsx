@@ -1,9 +1,10 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState, type ChangeEvent } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Icon, type IconName } from '../../components/Icon';
 import { PageHeader } from '../../components/PageHeader';
 import { categories } from '../../data/categories';
-import { imageIds } from '../../data/images';
+import { imageIds, imageSrc } from '../../data/images';
+import { filesToDataUrls } from '../../lib/imageUpload';
 import type { CategoryId } from '../../data/types';
 import { getUser } from '../../services/catalogService';
 import { formatPrice, shortName } from '../../utils/format';
@@ -51,12 +52,21 @@ export function CreateDemandPage() {
   const [price, setPrice] = useState(0);
   const [cityOpen, setCityOpen] = useState(false);
   const [citySearch, setCitySearch] = useState('');
-  const photoCount = 0;
+  const [photos, setPhotos] = useState<string[]>([]);
+  const fileRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const { createDemand } = useAppData();
 
+  async function onPickFiles(event: ChangeEvent<HTMLInputElement>) {
+    const files = event.target.files;
+    if (!files?.length) return;
+    const urls = await filesToDataUrls(files, { maxDim: 1200 });
+    setPhotos((prev) => [...prev, ...urls].slice(0, 10));
+    event.target.value = '';
+  }
+
   function publish() {
-    const demand = createDemand({ ownerId: activeUser.id, categoryId, title, description, price, city });
+    const demand = createDemand({ ownerId: activeUser.id, categoryId, title, description, price, city, referenceImages: photos });
     navigate(demandPath(activeUser.username, demand));
   }
 
@@ -183,13 +193,30 @@ export function CreateDemandPage() {
           </div>
 
           <div className="field-label">
-            Referans fotoğraf · <span className="muted-count">{photoCount}/10</span>
+            Referans fotoğraf · <span className="muted-count">{photos.length}/10</span>
           </div>
           <div className="card-block ref-grid">
-            <button type="button" className="ref-add">
-              <Icon name="Plus" size={18} />
-              <span>Foto ekle</span>
-            </button>
+            {photos.map((src, index) => (
+              <div key={index} className="ref-thumb">
+                <img src={imageSrc(src, 220)} alt="" />
+                {index === 0 ? <span className="ref-cap">Kapak</span> : null}
+                <button
+                  type="button"
+                  className="ref-x"
+                  aria-label="Kaldır"
+                  onClick={() => setPhotos((prev) => prev.filter((_, i) => i !== index))}
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+            {photos.length < 10 ? (
+              <button type="button" className="ref-add" onClick={() => fileRef.current?.click()}>
+                <Icon name="Plus" size={18} />
+                <span>Foto ekle</span>
+              </button>
+            ) : null}
+            <input ref={fileRef} type="file" accept="image/*" multiple hidden onChange={onPickFiles} />
           </div>
           <div className="ref-hint">
             Aradığın ürünün görselleri — ilki <b>kapak</b> olur.
@@ -200,7 +227,7 @@ export function CreateDemandPage() {
           <div className="field-label">Önizleme · satıcılar böyle görecek</div>
           <div className="demand-card preview-card">
             <DemandCardView
-              coverImage={CATEGORY_COVER[categoryId]}
+              coverImage={photos[0] ?? CATEGORY_COVER[categoryId]}
               title={title.trim() || 'Talep başlığın burada görünecek'}
               price={price ? formatPrice(price) : 'Fiyat belirt'}
               timeLabel="az önce"

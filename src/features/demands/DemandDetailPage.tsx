@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Icon, type IconName } from '../../components/Icon';
-import { unsplash } from '../../data/images';
+import { imageSrc } from '../../data/images';
 import { getCategory, getUser, offerCreditEstimate } from '../../services/catalogService';
 import { categoryPath, presentationPath, userBase } from '../../utils/routes';
 import { formatPrice, viewersOf } from '../../utils/format';
@@ -69,7 +69,7 @@ export function DemandDetailPage() {
       <div className="detail-page">
         <section className="detail-media-card">
           <div className="detail-hero">
-            <img src={unsplash(images[safeIndex], 1040)} alt={demand.title} />
+            <img src={imageSrc(images[safeIndex], 1040)} alt={demand.title} />
             <div className="detail-scrim" />
             <span className="detail-pin">
               {category ? <Icon name={category.icon as IconName} size={12} /> : null} {category?.name ?? 'Kategori'}
@@ -104,7 +104,7 @@ export function DemandDetailPage() {
                   aria-label={`Görsel ${index + 1}`}
                   onClick={() => setActiveImage(index)}
                 >
-                  <img src={unsplash(imageId, 160)} alt="" />
+                  <img src={imageSrc(imageId, 160)} alt="" />
                 </button>
               ))}
             </div>
@@ -252,7 +252,7 @@ export function DemandDetailPage() {
                       to={presentationPath(routeUser.username, demand, seller.username)}
                     >
                       <span className="detail-offer-thumb">
-                        <img src={unsplash(presentation.coverImage, 120)} alt="" />
+                        <img src={imageSrc(presentation.coverImage, 120)} alt="" />
                       </span>
                       <span className="detail-offer-copy">
                         <b>{isOwner ? seller.name : 'Senin sunumun'}</b>

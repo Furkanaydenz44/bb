@@ -1,6 +1,6 @@
 import { Avatar } from '../../components/Avatar';
 import { Icon } from '../../components/Icon';
-import { unsplash } from '../../data/images';
+import { imageSrc } from '../../data/images';
 
 export interface DemandCardViewProps {
   coverImage: string;
@@ -34,7 +34,7 @@ export function DemandCardView({
   return (
     <>
       <div className="demand-image">
-        <img src={unsplash(coverImage, 620)} alt="" />
+        <img src={imageSrc(coverImage, 620)} alt="" />
         <span className="floating-meta">
           <Icon name="Clock" size={12} /> {timeLabel}
         </span>

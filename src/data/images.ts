@@ -1,6 +1,26 @@
 export const unsplash = (id: string, width = 900) =>
   `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${width}&q=78`;
 
+/**
+ * Bir görsel referansını gerçek <img src> değerine çevirir.
+ * - Yüklenmiş görseller base64 data URL ('data:...') -> olduğu gibi
+ * - http(s)/blob URL -> olduğu gibi
+ * - Aksi halde Unsplash foto id -> unsplash() ile genişlet
+ */
+export function imageSrc(idOrUrl: string | undefined, width = 900): string {
+  if (!idOrUrl) return '';
+  if (
+    idOrUrl.startsWith('data:') ||
+    idOrUrl.startsWith('http://') ||
+    idOrUrl.startsWith('https://') ||
+    idOrUrl.startsWith('blob:') ||
+    idOrUrl.startsWith('/')
+  ) {
+    return idOrUrl;
+  }
+  return unsplash(idOrUrl, width);
+}
+
 export const imageIds = {
   camera: '1516035069371-29a1b244cc32',
   lens: '1495707902641-75cac588d2e9',

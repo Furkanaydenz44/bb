@@ -2,7 +2,7 @@ import { Link, useParams } from 'react-router-dom';
 import { Avatar } from '../../components/Avatar';
 import { Icon } from '../../components/Icon';
 import { StatusBadge } from '../../components/StatusBadge';
-import { unsplash } from '../../data/images';
+import { imageSrc } from '../../data/images';
 import { getDemandBySlug, getPresentation, getUser, offerCreditEstimate } from '../../services/catalogService';
 import { demandPath, userBase } from '../../utils/routes';
 import { formatPrice } from '../../utils/format';
@@ -46,10 +46,10 @@ export function PresentationDetailPage() {
 
       <section className="presentation-layout">
         <div className="presentation-media">
-          <img className="presentation-cover" src={unsplash(presentation.coverImage, 1120)} alt={demand.title} />
+          <img className="presentation-cover" src={imageSrc(presentation.coverImage, 1120)} alt={demand.title} />
           <div className="media-strip">
             {presentation.images.map((imageId) => (
-              <img key={imageId} src={unsplash(imageId, 220)} alt="" />
+              <img key={imageId} src={imageSrc(imageId, 220)} alt="" />
             ))}
           </div>
         </div>
