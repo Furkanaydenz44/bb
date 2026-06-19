@@ -282,7 +282,10 @@ img {
   padding: 4px 32px 0;
   max-width: var(--shell-w);
   margin: 0 auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
+.topbar2-nav::-webkit-scrollbar { display: none; }
 .topnav-link {
   display: inline-flex;
   align-items: center;
@@ -580,12 +583,12 @@ img {
 .content-shell {
   width: min(100%, var(--shell-w));
   margin: 0 auto;
-  padding: 28px 32px 42px;
+  padding: 22px 32px 28px;
 }
 
 .page-stack {
   display: grid;
-  gap: 22px;
+  gap: 18px;
 }
 
 .page-header {

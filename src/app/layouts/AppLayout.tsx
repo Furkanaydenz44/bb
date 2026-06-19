@@ -65,20 +65,6 @@ export function AppLayout() {
   return (
     <div className="app-shell">
       <header className="topbar2">
-        <div className="topbar2-strip">
-          <div className="topbar2-strip-inner">
-            <span className="role-note">
-              <Icon name="ShieldCheck" size={14} />
-              Tek hesap · işleme göre alıcı/satıcı
-            </span>
-            <div className="strip-links">
-              <NavLink to={`${base}/araclar/teklif-kredisi`}>Kredi Hesapla</NavLink>
-              <NavLink to={`${base}/kredi`}>Kredi Paketleri</NavLink>
-              <NavLink to={`${base}/talep-ac`}>Talep Aç</NavLink>
-            </div>
-          </div>
-        </div>
-
         <div className="topbar2-main">
           <NavLink className="wordmark2" to={base} aria-label="Bulbana ana sayfa">
             <span className="brand-mark small">
