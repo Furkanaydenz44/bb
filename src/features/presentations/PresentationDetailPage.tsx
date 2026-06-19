@@ -1,10 +1,13 @@
+import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Avatar } from '../../components/Avatar';
 import { Icon } from '../../components/Icon';
+import { Modal } from '../../components/Modal';
 import { StatusBadge } from '../../components/StatusBadge';
 import { imageSrc } from '../../data/images';
 import { getUser } from '../../services/catalogService';
 import { useAppData } from '../../store/appData';
+import { offerCreditCost } from '../../lib/credits';
 import { demandPath, userBase } from '../../utils/routes';
 import { formatPrice } from '../../utils/format';
 
@@ -12,7 +15,11 @@ export function PresentationDetailPage() {
   const { username = '@ahmetsafak', demandSlug = '', presentationId = '' } = useParams();
   const routeUser = getUser(username);
   const navigate = useNavigate();
-  const { getDemandByRoute, getPresentation, approvePresentation, rejectPresentation, findThread } = useAppData();
+  const [offering, setOffering] = useState(false);
+  const [offerPrice, setOfferPrice] = useState(0);
+  const [offerNote, setOfferNote] = useState('');
+  const { getDemandByRoute, getPresentation, requestOffer, rejectPresentation, sendOffer, creditsOf, getOfferForPresentation, findThread } =
+    useAppData();
   const demand = getDemandByRoute(demandSlug);
   const presentation = getPresentation(presentationId.replace(/^@/, ''));
 
@@ -37,8 +44,15 @@ export function PresentationDetailPage() {
   const thread = findThread(demand.id, demand.ownerId, presentation.sellerId);
   const messagesBase = `${userBase(routeUser.username)}/mesajlar`;
 
-  function approve() {
-    const created = approvePresentation(presentation.id, routeUser.id);
+  const offer = getOfferForPresentation(presentation.id);
+  const cost = offerCreditCost(demand, buyer.score);
+  const balance = creditsOf(routeUser.id);
+
+  function submitOffer() {
+    if (offerPrice <= 0) return;
+    const created = sendOffer({ presentationId: presentation.id, price: offerPrice, note: offerNote }, routeUser.id);
+    setOffering(false);
+    setOfferNote('');
     if (created) navigate(`${messagesBase}/${created.id}`);
   }
 
@@ -67,8 +81,8 @@ export function PresentationDetailPage() {
         </div>
 
         <div className="presentation-content">
-          {status === 'approved' ? (
-            <StatusBadge tone="green">Onaylandı · sohbet açık</StatusBadge>
+          {status === 'offer_requested' ? (
+            <StatusBadge tone="green">{offer ? 'Teklif verildi · sohbet açık' : 'Teklif istendi'}</StatusBadge>
           ) : status === 'rejected' ? (
             <StatusBadge tone="warning">Reddedildi</StatusBadge>
           ) : (
@@ -106,7 +120,7 @@ export function PresentationDetailPage() {
             <div>
               <Icon name="ShieldCheck" size={17} />
               <strong>Akış</strong>
-              <span>Onay → sohbet → resmi teklif → pazarlık → kargo.</span>
+              <span>Teklif iste → satıcı teklif verir → sohbet → pazarlık → kargo.</span>
             </div>
           </div>
         </div>
@@ -114,7 +128,7 @@ export function PresentationDetailPage() {
         <aside className="action-panel">
           <span className="eyebrow">Alıcı bütçesi</span>
           <strong className="hero-price">{formatPrice(demand.price)}</strong>
-          <p>Görselleri onaylarsan satıcıyla sohbet açılır ve resmi teklif akışı başlar.</p>
+          <p>Beğendiğin sunumdan teklif iste; satıcı krediyle resmi teklif verince sohbet açılır.</p>
           <div className="action-metrics">
             <div>
               <strong>{seller.score}</strong>
@@ -132,18 +146,49 @@ export function PresentationDetailPage() {
 
           {isBuyer && status === 'submitted' ? (
             <>
-              <button className="button primary wide" type="button" onClick={approve}>
-                <Icon name="CheckCircle2" size={17} />
-                Görselleri Onayla
+              <button className="button primary wide" type="button" onClick={() => requestOffer(presentation.id, routeUser.id)}>
+                <Icon name="Handshake" size={17} />
+                Teklif İste
               </button>
               <button className="button ghost wide" type="button" onClick={() => rejectPresentation(presentation.id, routeUser.id)}>
                 <Icon name="X" size={17} />
                 Reddet
               </button>
+              <p style={{ margin: 0, fontSize: 12.5, lineHeight: 1.5, color: 'var(--muted)' }}>
+                Beğendiğin sunumdan teklif iste; satıcı resmi fiyatını verir.
+              </p>
             </>
           ) : null}
 
-          {status === 'approved' && thread ? (
+          {isBuyer && status === 'offer_requested' && !offer ? (
+            <p style={{ margin: 0, fontSize: 12.5, lineHeight: 1.5, color: 'var(--muted)' }}>
+              Teklif istedin — satıcının resmi teklifi bekleniyor.
+            </p>
+          ) : null}
+
+          {isSeller && status === 'offer_requested' && !offer ? (
+            <>
+              <button
+                className="button primary wide"
+                type="button"
+                disabled={balance < cost}
+                onClick={() => {
+                  setOfferPrice(demand.price);
+                  setOffering(true);
+                }}
+              >
+                <Icon name="Handshake" size={17} />
+                Resmi Teklif Ver · {cost} kredi
+              </button>
+              <p style={{ margin: 0, fontSize: 12.5, lineHeight: 1.5, color: balance < cost ? '#b5462e' : 'var(--muted)' }}>
+                {balance < cost
+                  ? `Kredin yetersiz (${balance}/${cost}). Kredi yalnız ilk teklifte ödenir; pazarlık ücretsiz.`
+                  : `Bakiyen ${balance} kredi. Teklif maliyeti ${cost} kredi (ilanda 1 kez); revize/pazarlık ücretsiz.`}
+              </p>
+            </>
+          ) : null}
+
+          {offer && thread ? (
             <Link className="button primary wide" to={`${messagesBase}/${thread.id}`}>
               <Icon name="MessageCircle" size={17} />
               Sohbete Git
@@ -152,7 +197,7 @@ export function PresentationDetailPage() {
 
           {isSeller && status === 'submitted' ? (
             <p style={{ margin: 0, fontSize: 12.5, lineHeight: 1.5, color: 'var(--muted)' }}>
-              Sunumun iletildi. Alıcı görselleri onaylarsa sohbet açılır ve resmi teklifini verebilirsin.
+              Sunumun iletildi. Alıcı teklif isterse, krediyle resmi teklifini verirsin ve sohbet açılır.
             </p>
           ) : null}
 
@@ -170,6 +215,41 @@ export function PresentationDetailPage() {
           </div>
         </aside>
       </section>
+
+      <Modal
+        open={offering}
+        onClose={() => setOffering(false)}
+        title="Resmi Teklif Ver"
+        footer={
+          <>
+            <button type="button" className="button ghost" onClick={() => setOffering(false)}>
+              Vazgeç
+            </button>
+            <button type="button" className="button primary" disabled={offerPrice <= 0} onClick={submitOffer}>
+              <Icon name="Handshake" size={16} /> Teklif Gönder · {cost} kredi
+            </button>
+          </>
+        }
+      >
+        <div className="present-form">
+          <p style={{ margin: 0, fontSize: 13, lineHeight: 1.5, color: 'var(--muted)' }}>
+            Alıcının ilan fiyatı <b style={{ color: 'var(--ink)' }}>{formatPrice(demand.price)}</b>. Resmi teklifini gir — bu bedel <b style={{ color: 'var(--ink)' }}>{cost} kredi</b> (yalnız ilk teklifte; pazarlık ücretsiz). Bakiyen: {balance} kredi.
+          </p>
+          <label className="present-field">
+            <span>Teklif fiyatı (₺)</span>
+            <input
+              inputMode="numeric"
+              value={offerPrice || ''}
+              onChange={(event) => setOfferPrice(Number(event.target.value.replace(/[^0-9]/g, '')) || 0)}
+              placeholder={String(demand.price)}
+            />
+          </label>
+          <label className="present-field">
+            <span>Not (opsiyonel)</span>
+            <textarea value={offerNote} onChange={(event) => setOfferNote(event.target.value)} rows={2} placeholder="Teslimat, pazarlık payı…" />
+          </label>
+        </div>
+      </Modal>
     </div>
   );
 }

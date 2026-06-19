@@ -21,6 +21,7 @@ import type {
   UserId,
 } from '../data/types';
 import { findUser } from '../services/session';
+import { offerCreditCost } from '../lib/credits';
 import { demandSlug } from '../utils/routes';
 
 /**
@@ -37,6 +38,7 @@ const LS = {
   threads: 'bulbana.threads',
   messages: 'bulbana.messages',
   notifications: 'bulbana.notifications',
+  creditDeltas: 'bulbana.creditDeltas',
 };
 
 function read<T>(key: string, fallback: T): T {
@@ -118,13 +120,14 @@ interface AppDataValue {
   getThreadMessages: (threadId: string) => Message[];
   getUserNotifications: (userId: UserId) => AppNotification[];
   unreadCount: (userId: UserId) => number;
+  creditsOf: (userId: UserId) => number;
 
   // --- actions ---
   createDemand: (input: CreateDemandInput) => Demand;
   createPresentation: (input: CreatePresentationInput) => Presentation;
-  approvePresentation: (presentationId: string, byUserId: UserId) => Thread | undefined;
+  requestOffer: (presentationId: string, byUserId: UserId) => void;
   rejectPresentation: (presentationId: string, byUserId: UserId) => void;
-  sendOffer: (input: SendOfferInput, byUserId: UserId) => Offer | undefined;
+  sendOffer: (input: SendOfferInput, byUserId: UserId) => Thread | undefined;
   counterOffer: (offerId: string, price: number, byUserId: UserId) => void;
   acceptOffer: (offerId: string, byUserId: UserId) => Deal | undefined;
   rejectOffer: (offerId: string, byUserId: UserId) => void;
@@ -147,6 +150,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const [threads, setThreads] = useState<Thread[]>(() => read(LS.threads, []));
   const [messages, setMessages] = useState<Message[]>(() => read(LS.messages, []));
   const [notifications, setNotifications] = useState<AppNotification[]>(() => read(LS.notifications, []));
+  const [creditDeltas, setCreditDeltas] = useState<Record<string, number>>(() => read(LS.creditDeltas, {}));
 
   useEffect(() => void localStorage.setItem(LS.demands, JSON.stringify(userDemands)), [userDemands]);
   useEffect(() => void localStorage.setItem(LS.presentations, JSON.stringify(userPresentations)), [userPresentations]);
@@ -156,6 +160,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   useEffect(() => void localStorage.setItem(LS.threads, JSON.stringify(threads)), [threads]);
   useEffect(() => void localStorage.setItem(LS.messages, JSON.stringify(messages)), [messages]);
   useEffect(() => void localStorage.setItem(LS.notifications, JSON.stringify(notifications)), [notifications]);
+  useEffect(() => void localStorage.setItem(LS.creditDeltas, JSON.stringify(creditDeltas)), [creditDeltas]);
 
   const demands: Demand[] = [...userDemands, ...seedDemands];
   const presentations: Presentation[] = [...seedPresentations, ...userPresentations].map((p) =>
@@ -193,6 +198,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   const threadHref = (t: Thread) => `/mesajlar/${t.id}`;
 
+  const creditsOf = (userId: UserId) => (findUser(userId)?.credits ?? 0) + (creditDeltas[userId] ?? 0);
+
   const value: AppDataValue = {
     demands,
     presentations,
@@ -223,6 +230,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     getUserNotifications: (userId) =>
       notifications.filter((n) => n.userId === userId).sort((a, b) => b.at - a.at),
     unreadCount: (userId) => notifications.filter((n) => n.userId === userId && !n.read).length,
+    creditsOf,
 
     createDemand: (input) => {
       const demand: Demand = {
@@ -265,15 +273,18 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       return presentation;
     },
 
-    approvePresentation: (presentationId, byUserId) => {
+    requestOffer: (presentationId, byUserId) => {
       const pres = presentations.find((p) => p.id === presentationId);
       const demand = pres && demands.find((d) => d.id === pres.demandId);
-      if (!pres || !demand) return undefined;
-      patchPresentation(presentationId, { status: 'approved' });
-      const thread = ensureThread(demand.id, pres.id, demand.ownerId, pres.sellerId);
-      pushMessage(thread.id, byUserId, 'system', 'Sunum onaylandı — sohbet açıldı. Satıcı resmi teklifini verebilir.');
-      notify(pres.sellerId, 'approved', `${nameOf(demand.ownerId)} sunumunu onayladı — sohbet açıldı`, threadHref(thread));
-      return thread;
+      if (!pres || !demand) return;
+      patchPresentation(presentationId, { status: 'offer_requested' });
+      const sellerName = findUser(pres.sellerId)?.username ?? pres.sellerId;
+      notify(
+        pres.sellerId,
+        'approved',
+        `${nameOf(demand.ownerId)} sunumunu beğendi — senden resmi teklif istiyor`,
+        `/ilan/${demandSlug(demand)}/sunum/${sellerName}`,
+      );
     },
 
     rejectPresentation: (presentationId, byUserId) => {
@@ -287,6 +298,11 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       const pres = presentations.find((p) => p.id === input.presentationId);
       const demand = pres && demands.find((d) => d.id === pres.demandId);
       if (!pres || !demand) return undefined;
+      const existing = allOffers.find((o) => o.presentationId === pres.id);
+      if (existing) return ensureThread(demand.id, pres.id, demand.ownerId, pres.sellerId); // teklif zaten var; sohbete götür
+      const cost = offerCreditCost(demand, findUser(demand.ownerId)?.score);
+      if (creditsOf(byUserId) < cost) return undefined; // kredi yetersiz
+      setCreditDeltas((prev) => ({ ...prev, [byUserId]: (prev[byUserId] ?? 0) - cost }));
       const at = Date.now();
       const offer: Offer = {
         id: genId(),
@@ -298,14 +314,16 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         note: input.note,
         delivery: input.delivery,
         status: 'pending',
+        creditCost: cost,
         createdAt: at,
         history: [{ actor: 'seller', action: 'offer', price: input.price, at }],
       };
       setOffers((prev) => [offer, ...prev]);
       const thread = ensureThread(demand.id, pres.id, demand.ownerId, pres.sellerId);
+      pushMessage(thread.id, byUserId, 'system', `Sohbet açıldı · teklif maliyeti ${cost} kredi (ilanda yalnız 1 kez; pazarlık ücretsiz).`);
       pushMessage(thread.id, byUserId, 'offer', `Resmi teklif: ${input.price.toLocaleString('tr-TR')}₺${input.note ? ' — ' + input.note : ''}`, input.price);
       notify(demand.ownerId, 'offer', `${nameOf(pres.sellerId)} ${input.price.toLocaleString('tr-TR')}₺ resmi teklif verdi`, threadHref(thread));
-      return offer;
+      return thread;
     },
 
     counterOffer: (offerId, price, byUserId) => {
@@ -340,11 +358,12 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         price: offer.price,
         status: 'awaiting_shipment',
         createdAt: Date.now(),
+        deadlineAt: Date.now() + 3 * 24 * 60 * 60 * 1000,
       };
       setDeals((prev) => [deal, ...prev]);
       const thread = ensureThread(offer.demandId, offer.presentationId, offer.buyerId, offer.sellerId);
-      pushMessage(thread.id, byUserId, 'system', `Anlaşma sağlandı: ${offer.price.toLocaleString('tr-TR')}₺. Satıcı ürünü kargolamalı.`);
-      notify(offer.sellerId, 'deal', `Anlaşma! ${offer.price.toLocaleString('tr-TR')}₺ — şimdi ürünü kargola`, threadHref(thread));
+      pushMessage(thread.id, byUserId, 'system', `Anlaşma sağlandı: ${offer.price.toLocaleString('tr-TR')}₺. Satıcı 3 gün içinde kargolamalı; kargo no + firma sohbete yazılacak.`);
+      notify(offer.sellerId, 'deal', `Anlaşma! ${offer.price.toLocaleString('tr-TR')}₺ — 3 gün içinde kargola`, threadHref(thread));
       notify(offer.buyerId, 'deal', `Anlaşma sağlandı: ${offer.price.toLocaleString('tr-TR')}₺`, threadHref(thread));
       return deal;
     },

@@ -10,8 +10,8 @@ export type CategoryId =
   | 'teknoloji'
   | 'oto';
 
-// Sunum: satıcı görselleri gönderir -> alıcı onaylar/reddeder.
-export type PresentationStatus = 'submitted' | 'approved' | 'rejected';
+// Sunum: satıcı görselleri gönderir -> alıcı TEKLİF İSTER veya reddeder.
+export type PresentationStatus = 'submitted' | 'offer_requested' | 'rejected';
 // Teklif: satıcı resmi teklif verir -> pazarlık -> anlaşma.
 export type OfferStatus = 'pending' | 'countered' | 'accepted' | 'rejected';
 // Anlaşma sonrası teslimat.
@@ -87,6 +87,7 @@ export interface Deal {
   carrier?: string;
   trackingNo?: string;
   createdAt: number;
+  deadlineAt?: number; // satıcının kargolaması için son tarih (anlaşma + 3 gün)
   shippedAt?: number;
   deliveredAt?: number;
 }
