@@ -23,12 +23,6 @@ export function ProfilePage() {
     { icon: 'MessageCircle', value: String(user.reviews), label: 'Değerlendirme' },
     { icon: 'Clock', value: user.responseTime, label: 'Ort. yanıt' },
   ];
-  const summary: Array<{ icon: IconName; label: string; value: string }> = [
-    { icon: 'WalletCards', label: 'Kredi', value: String(credits) },
-    { icon: 'CircleDollarSign', label: 'Talep bütçesi', value: formatPrice(totalBudget) },
-    { icon: 'Inbox', label: 'Aktif ilan', value: String(ownedDemands.length) },
-    { icon: 'MapPin', label: 'Şehir', value: user.city },
-  ];
 
   return (
     <div className="page-stack">
@@ -43,40 +37,60 @@ export function ProfilePage() {
         }
       />
 
-      <section className="prof-hero">
-        <div className="prof-cover" aria-hidden="true" />
-        <div className="prof-id">
-          <Avatar label={user.avatar} size="lg" />
-          <div className="prof-id-main">
-            <span className="prof-handle">@{user.username}</span>
-            <h1>{user.name}</h1>
-            <p className="prof-meta">
-              <span><Icon name="MapPin" size={14} /> {user.city}</span>
-              <span><Icon name="Clock" size={14} /> {user.responseTime} yanıt</span>
-              <span><Icon name="BadgeCheck" size={14} /> %{user.completionRate} tamamlama</span>
-            </p>
-          </div>
-          <div className="prof-rating">
-            <strong><Icon name="Star" size={16} /> {user.score}</strong>
-            <span>{user.reviews} değerlendirme</span>
-          </div>
-        </div>
-
-        {user.trustSignals.length ? (
-          <div className="prof-trust">
-            <span className="prof-trust-label">Güven sinyalleri</span>
-            {user.trustSignals.map((signal) => (
-              <span key={signal} className="prof-chip">
-                <Icon name="BadgeCheck" size={14} />
-                {signal}
-              </span>
-            ))}
-          </div>
-        ) : null}
-      </section>
-
       <div className="prof-grid">
-        <div className="prof-col-main">
+        {/* Sol: dikey kimlik kartı + hesap özeti */}
+        <aside className="prof-side">
+          <section className="prof-card">
+            <div className="prof-card-cover" aria-hidden="true" />
+            <div className="prof-card-body">
+              <Avatar label={user.avatar} size="lg" />
+              <h1>{user.name}</h1>
+              <span className="prof-card-handle">@{user.username}</span>
+              <div className="prof-card-rating">
+                <Icon name="Star" size={15} /> {user.score}
+                <span>· {user.reviews} değerlendirme</span>
+              </div>
+              <div className="prof-card-meta">
+                <span><Icon name="MapPin" size={14} /> {user.city}</span>
+                <span><Icon name="Clock" size={14} /> {user.responseTime} ortalama yanıt</span>
+                <span><Icon name="BadgeCheck" size={14} /> %{user.completionRate} tamamlama</span>
+              </div>
+              {user.trustSignals.length ? (
+                <div className="prof-card-trust">
+                  {user.trustSignals.map((signal) => (
+                    <span key={signal} className="prof-chip">
+                      <Icon name="BadgeCheck" size={13} />
+                      {signal}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+
+              <div className="prof-card-stats">
+                <div>
+                  <strong>{credits}</strong>
+                  <span>Kredi</span>
+                </div>
+                <div>
+                  <strong>{formatPrice(totalBudget)}</strong>
+                  <span>Bütçe</span>
+                </div>
+                <div>
+                  <strong>{ownedDemands.length}</strong>
+                  <span>İlan</span>
+                </div>
+              </div>
+
+              <Link className="button ghost wide prof-card-cta" to={`${base}/kredi`}>
+                <Icon name="WalletCards" size={16} />
+                Kredi yönet
+              </Link>
+            </div>
+          </section>
+        </aside>
+
+        {/* Sağ: performans + talepler */}
+        <div className="prof-main">
           <section className="prof-panel">
             <div className="prof-panel-head">
               <h2>Performans</h2>
@@ -130,27 +144,6 @@ export function ProfilePage() {
             </div>
           </section>
         </div>
-
-        <aside className="prof-col-side">
-          <section className="prof-panel">
-            <div className="prof-panel-head">
-              <h2>Hesap özeti</h2>
-            </div>
-            <ul className="prof-summary">
-              {summary.map((s) => (
-                <li key={s.label}>
-                  <span className="prof-sum-ic"><Icon name={s.icon} size={16} /></span>
-                  <span className="prof-sum-l">{s.label}</span>
-                  <b>{s.value}</b>
-                </li>
-              ))}
-            </ul>
-            <Link className="button ghost wide" to={`${base}/kredi`}>
-              <Icon name="WalletCards" size={16} />
-              Kredi yönet
-            </Link>
-          </section>
-        </aside>
       </div>
     </div>
   );
