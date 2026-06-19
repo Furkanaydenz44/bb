@@ -4,7 +4,8 @@ import { Avatar } from '../../components/Avatar';
 import { Icon, type IconName } from '../../components/Icon';
 import { getAllUsers, getCurrentUser, login, logout } from '../../services/session';
 import { useAppData } from '../../store/appData';
-import { userBase } from '../../utils/routes';
+import { categories, categoryGroups } from '../../data/categories';
+import { categoryPath, userBase } from '../../utils/routes';
 
 const primaryNav: Array<{ label: string; icon: IconName; path: string }> = [
   { label: 'Talepler', icon: 'Home', path: '' },
@@ -20,6 +21,8 @@ export function AppLayout() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [query, setQuery] = useState('');
+  const [catOpen, setCatOpen] = useState(false);
+  const [activeCat, setActiveCat] = useState(categories[0].id);
   const session = getCurrentUser();
   const { creditsOf, unreadCount, getUserNotifications, markNotificationsRead } = useAppData();
 
@@ -166,6 +169,66 @@ export function AppLayout() {
         </div>
 
         <nav className="topbar2-nav" aria-label="Ana menü">
+          <div
+            className="cat-mega-wrap"
+            onMouseEnter={() => setCatOpen(true)}
+            onMouseLeave={() => setCatOpen(false)}
+          >
+            <button
+              type="button"
+              className={`topnav-link cat-trigger${catOpen ? ' active' : ''}`}
+              onClick={() => setCatOpen((open) => !open)}
+              aria-expanded={catOpen}
+            >
+              <Icon name="Menu" size={17} />
+              Kategoriler
+            </button>
+
+            {catOpen && (
+              <div className="cat-mega" role="menu">
+                <div className="cat-rail">
+                  {categories.map((c) => (
+                    <NavLink
+                      key={c.id}
+                      to={categoryPath(activeUser.username, c.id)}
+                      className={`cat-rail-item${activeCat === c.id ? ' on' : ''}`}
+                      onMouseEnter={() => setActiveCat(c.id)}
+                      onClick={() => setCatOpen(false)}
+                    >
+                      <Icon name={c.icon as IconName} size={18} />
+                      <span>{c.name}</span>
+                      <Icon name="ChevronRight" size={16} />
+                    </NavLink>
+                  ))}
+                </div>
+                <div className="cat-cols">
+                  {categoryGroups[activeCat].map((group) => (
+                    <div key={group.title} className="cat-col">
+                      <NavLink
+                        className="cat-col-head"
+                        to={categoryPath(activeUser.username, activeCat)}
+                        onClick={() => setCatOpen(false)}
+                      >
+                        {group.title}
+                        <Icon name="ChevronRight" size={14} />
+                      </NavLink>
+                      {group.items.map((item) => (
+                        <NavLink
+                          key={item}
+                          className="cat-col-item"
+                          to={`${base}/kesfet?q=${encodeURIComponent(item)}`}
+                          onClick={() => setCatOpen(false)}
+                        >
+                          {item}
+                        </NavLink>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
           {primaryNav.map((item) => (
             <NavLink
               key={item.path || 'home'}
