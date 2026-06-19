@@ -2880,8 +2880,8 @@ img {
    ====================================================================== */
 .detail-page {
   display: grid;
-  grid-template-columns: minmax(300px, 380px) minmax(0, 1fr) minmax(320px, 380px);
-  gap: 22px;
+  grid-template-columns: minmax(280px, 350px) minmax(0, 1fr) minmax(300px, 360px);
+  gap: 20px;
   align-items: start;
 }
 
@@ -3106,8 +3106,8 @@ img {
 
 .detail-trust-band {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
+  grid-template-columns: 1fr;
+  gap: 8px;
   margin-top: 18px;
 }
 
