@@ -2847,3 +2847,151 @@ img {
 .acct-logout:hover {
   background: var(--surface-soft);
 }
+
+/* ====== Sohbet (Mesajlar) ====== */
+.thread-row.on {
+  border-color: var(--purple);
+  background: var(--purple-soft);
+}
+
+.thread-row .thread-last {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 11.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 460px;
+  height: calc(100dvh - 220px);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.chat-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+}
+
+.chat-head strong {
+  display: block;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.chat-head small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.chat-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background:
+    radial-gradient(rgba(74, 46, 120, 0.05) 1px, transparent 1px) 0 0 / 26px 26px,
+    var(--bg);
+}
+
+.chat-system {
+  align-self: center;
+  max-width: 80%;
+  text-align: center;
+  margin: 6px 0;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: var(--surface-soft);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.chat-row {
+  display: flex;
+}
+
+.chat-row.me {
+  justify-content: flex-end;
+}
+
+.chat-bubble {
+  max-width: 74%;
+  padding: 9px 13px;
+  border-radius: 16px;
+  font-size: 14px;
+  line-height: 1.4;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--ink);
+}
+
+.chat-row.me .chat-bubble {
+  background: var(--purple);
+  border-color: var(--purple);
+  color: #fff;
+}
+
+.chat-bubble.offer {
+  background: var(--green);
+  border-color: var(--green-ink);
+  color: var(--green-ink);
+  font-weight: 800;
+}
+
+.chat-row.me .chat-bubble.offer {
+  color: var(--green-ink);
+}
+
+.chat-bubble.shipping {
+  background: #eef7d8;
+  border-color: #d8eba6;
+  color: #4f6a12;
+  font-weight: 700;
+}
+
+.chat-compose {
+  display: flex;
+  gap: 10px;
+  padding: 12px 14px;
+  border-top: 1px solid var(--line);
+}
+
+.chat-compose input {
+  flex: 1;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1.5px solid var(--line-strong);
+  border-radius: 999px;
+  outline: none;
+  font: inherit;
+  color: var(--ink);
+  background: var(--surface-soft);
+}
+
+.chat-compose input:focus {
+  border-color: var(--purple);
+  background: var(--surface);
+}
+
+.chat-compose .button {
+  width: 44px;
+  padding: 0;
+  flex: 0 0 auto;
+  border-radius: 50%;
+}

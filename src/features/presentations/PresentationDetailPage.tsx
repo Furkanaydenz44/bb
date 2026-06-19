@@ -1,16 +1,19 @@
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Avatar } from '../../components/Avatar';
 import { Icon } from '../../components/Icon';
 import { StatusBadge } from '../../components/StatusBadge';
 import { imageSrc } from '../../data/images';
-import { getDemandBySlug, getPresentation, getUser, offerCreditEstimate } from '../../services/catalogService';
+import { getUser } from '../../services/catalogService';
+import { useAppData } from '../../store/appData';
 import { demandPath, userBase } from '../../utils/routes';
 import { formatPrice } from '../../utils/format';
 
 export function PresentationDetailPage() {
   const { username = '@ahmetsafak', demandSlug = '', presentationId = '' } = useParams();
   const routeUser = getUser(username);
-  const demand = getDemandBySlug(demandSlug);
+  const navigate = useNavigate();
+  const { getDemandByRoute, getPresentation, approvePresentation, rejectPresentation, findThread } = useAppData();
+  const demand = getDemandByRoute(demandSlug);
   const presentation = getPresentation(presentationId.replace(/^@/, ''));
 
   if (!demand || !presentation || presentation.demandId !== demand.id) {
@@ -28,7 +31,16 @@ export function PresentationDetailPage() {
 
   const buyer = getUser(demand.ownerId);
   const seller = getUser(presentation.sellerId);
-  const creditEstimate = offerCreditEstimate(demand.price, demand.categoryId);
+  const isBuyer = routeUser.id === demand.ownerId;
+  const isSeller = routeUser.id === presentation.sellerId;
+  const status = presentation.status;
+  const thread = findThread(demand.id, demand.ownerId, presentation.sellerId);
+  const messagesBase = `${userBase(routeUser.username)}/mesajlar`;
+
+  function approve() {
+    const created = approvePresentation(presentation.id, routeUser.id);
+    if (created) navigate(`${messagesBase}/${created.id}`);
+  }
 
   return (
     <div className="page-stack">
@@ -48,14 +60,20 @@ export function PresentationDetailPage() {
         <div className="presentation-media">
           <img className="presentation-cover" src={imageSrc(presentation.coverImage, 1120)} alt={demand.title} />
           <div className="media-strip">
-            {presentation.images.map((imageId) => (
-              <img key={imageId} src={imageSrc(imageId, 220)} alt="" />
+            {presentation.images.map((imageId, index) => (
+              <img key={index} src={imageSrc(imageId, 220)} alt="" />
             ))}
           </div>
         </div>
 
         <div className="presentation-content">
-          <StatusBadge tone="green">Sunuldu · İnceleniyor</StatusBadge>
+          {status === 'approved' ? (
+            <StatusBadge tone="green">Onaylandı · sohbet açık</StatusBadge>
+          ) : status === 'rejected' ? (
+            <StatusBadge tone="warning">Reddedildi</StatusBadge>
+          ) : (
+            <StatusBadge tone="purple">Sunuldu · inceleniyor</StatusBadge>
+          )}
           <h1>{demand.title}</h1>
           <p>{presentation.description}</p>
 
@@ -86,9 +104,9 @@ export function PresentationDetailPage() {
               <span>{presentation.city} teslimat opsiyonu</span>
             </div>
             <div>
-              <Icon name="CreditCard" size={17} />
-              <strong>Teklif maliyeti</strong>
-              <span>Resmi teklif isteği yaklaşık {creditEstimate} kredi.</span>
+              <Icon name="ShieldCheck" size={17} />
+              <strong>Akış</strong>
+              <span>Onay → sohbet → resmi teklif → pazarlık → kargo.</span>
             </div>
           </div>
         </div>
@@ -96,7 +114,7 @@ export function PresentationDetailPage() {
         <aside className="action-panel">
           <span className="eyebrow">Alıcı bütçesi</span>
           <strong className="hero-price">{formatPrice(demand.price)}</strong>
-          <p>Alıcı ürünü uygun bulursa resmi teklif akışı başlar.</p>
+          <p>Görselleri onaylarsan satıcıyla sohbet açılır ve resmi teklif akışı başlar.</p>
           <div className="action-metrics">
             <div>
               <strong>{seller.score}</strong>
@@ -107,18 +125,41 @@ export function PresentationDetailPage() {
               <span>işlem</span>
             </div>
             <div>
-              <strong>{creditEstimate}</strong>
-              <span>kredi</span>
+              <strong>{presentation.images.length}</strong>
+              <span>görsel</span>
             </div>
           </div>
-          <button className="button primary wide" type="button">
-            <Icon name="Handshake" size={17} />
-            Resmi Teklif İste
-          </button>
-          <button className="button ghost wide" type="button">
-            <Icon name="MessageCircle" size={17} />
-            Satıcıya Mesaj Yaz
-          </button>
+
+          {isBuyer && status === 'submitted' ? (
+            <>
+              <button className="button primary wide" type="button" onClick={approve}>
+                <Icon name="CheckCircle2" size={17} />
+                Görselleri Onayla
+              </button>
+              <button className="button ghost wide" type="button" onClick={() => rejectPresentation(presentation.id, routeUser.id)}>
+                <Icon name="X" size={17} />
+                Reddet
+              </button>
+            </>
+          ) : null}
+
+          {status === 'approved' && thread ? (
+            <Link className="button primary wide" to={`${messagesBase}/${thread.id}`}>
+              <Icon name="MessageCircle" size={17} />
+              Sohbete Git
+            </Link>
+          ) : null}
+
+          {isSeller && status === 'submitted' ? (
+            <p style={{ margin: 0, fontSize: 12.5, lineHeight: 1.5, color: 'var(--muted)' }}>
+              Sunumun iletildi. Alıcı görselleri onaylarsa sohbet açılır ve resmi teklifini verebilirsin.
+            </p>
+          ) : null}
+
+          {status === 'rejected' ? (
+            <p style={{ margin: 0, fontSize: 12.5, lineHeight: 1.5, color: 'var(--muted)' }}>Alıcı bu sunumu beğenmedi.</p>
+          ) : null}
+
           <div className="trust-list">
             {seller.trustSignals.map((signal) => (
               <span key={signal}>

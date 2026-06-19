@@ -32,6 +32,7 @@ export function App() {
         <Route path="ilan/:demandSlug" element={<DemandDetailPage />} />
         <Route path="ilan/:demandSlug/sunum/:presentationId" element={<PresentationDetailPage />} />
         <Route path="mesajlar" element={<MessagesPage />} />
+        <Route path="mesajlar/:threadId" element={<MessagesPage />} />
         <Route path="profil" element={<ProfilePage />} />
         <Route path="kredi" element={<CreditsPage />} />
         <Route path="araclar/teklif-kredisi" element={<CreditCalculatorPage />} />
