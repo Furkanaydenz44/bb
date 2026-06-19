@@ -66,14 +66,16 @@ export function AppLayout() {
     <div className="app-shell">
       <header className="topbar2">
         <div className="topbar2-strip">
-          <span className="role-note">
-            <Icon name="ShieldCheck" size={14} />
-            Tek hesap · işleme göre alıcı/satıcı
-          </span>
-          <div className="strip-links">
-            <NavLink to={`${base}/araclar/teklif-kredisi`}>Kredi Hesapla</NavLink>
-            <NavLink to={`${base}/kredi`}>Kredi Paketleri</NavLink>
-            <NavLink to={`${base}/talep-ac`}>Talep Aç</NavLink>
+          <div className="topbar2-strip-inner">
+            <span className="role-note">
+              <Icon name="ShieldCheck" size={14} />
+              Tek hesap · işleme göre alıcı/satıcı
+            </span>
+            <div className="strip-links">
+              <NavLink to={`${base}/araclar/teklif-kredisi`}>Kredi Hesapla</NavLink>
+              <NavLink to={`${base}/kredi`}>Kredi Paketleri</NavLink>
+              <NavLink to={`${base}/talep-ac`}>Talep Aç</NavLink>
+            </div>
           </div>
         </div>
 
