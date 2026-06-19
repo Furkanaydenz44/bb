@@ -143,6 +143,7 @@ export interface Demand {
   description: string;
   price: number;
   city: string;
+  district?: string;
   badge: string;
   createdAtLabel: string;
   coverImage: string;

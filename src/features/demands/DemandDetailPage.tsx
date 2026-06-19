@@ -6,7 +6,7 @@ import { imageSrc } from '../../data/images';
 import { filesToDataUrls } from '../../lib/imageUpload';
 import { getCategory, getUser, offerCreditEstimate } from '../../services/catalogService';
 import { categoryPath, presentationPath, userBase } from '../../utils/routes';
-import { formatPrice, viewersOf } from '../../utils/format';
+import { formatPrice, locationLabel, viewersOf } from '../../utils/format';
 import { useAppData } from '../../store/appData';
 
 const TRUST_ITEMS: Array<{ icon: IconName; title: string; copy: string }> = [
@@ -166,7 +166,7 @@ export function DemandDetailPage() {
 
             <div className="detail-meta-row">
               <span>
-                <Icon name="MapPin" size={13} /> {demand.city}
+                <Icon name="MapPin" size={13} /> {locationLabel(demand.city, demand.district)}
               </span>
               <span>
                 <Icon name="Clock" size={13} /> {demand.createdAtLabel}

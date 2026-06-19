@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Icon, type IconName } from '../../components/Icon';
 import { PageHeader } from '../../components/PageHeader';
 import { categories } from '../../data/categories';
+import { districtsByCity } from '../../data/districts';
 import { imageIds, imageSrc } from '../../data/images';
 import { filesToDataUrls } from '../../lib/imageUpload';
 import type { CategoryId } from '../../data/types';
@@ -49,9 +50,12 @@ export function CreateDemandPage() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [city, setCity] = useState('İstanbul');
+  const [district, setDistrict] = useState('');
   const [price, setPrice] = useState(0);
   const [cityOpen, setCityOpen] = useState(false);
   const [citySearch, setCitySearch] = useState('');
+  const [districtOpen, setDistrictOpen] = useState(false);
+  const [districtSearch, setDistrictSearch] = useState('');
   const [photos, setPhotos] = useState<string[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
@@ -66,7 +70,7 @@ export function CreateDemandPage() {
   }
 
   function publish() {
-    const demand = createDemand({ ownerId: activeUser.id, categoryId, title, description, price, city, referenceImages: photos });
+    const demand = createDemand({ ownerId: activeUser.id, categoryId, title, description, price, city, district, referenceImages: photos });
     navigate(demandPath(activeUser.username, demand));
   }
 
@@ -74,6 +78,12 @@ export function CreateDemandPage() {
     const q = citySearch.trim().toLocaleLowerCase('tr-TR');
     return q ? CITIES.filter((name) => name.toLocaleLowerCase('tr-TR').includes(q)) : CITIES;
   }, [citySearch]);
+
+  const districts = districtsByCity[city] ?? [];
+  const filteredDistricts = useMemo(() => {
+    const q = districtSearch.trim().toLocaleLowerCase('tr-TR');
+    return q ? districts.filter((name) => name.toLocaleLowerCase('tr-TR').includes(q)) : districts;
+  }, [districtSearch, districts]);
 
   return (
     <div className="page-stack">
@@ -155,6 +165,7 @@ export function CreateDemandPage() {
                           className={`city-opt${name === city ? ' sel' : ''}`}
                           onClick={() => {
                             setCity(name);
+                            setDistrict('');
                             setCityOpen(false);
                             setCitySearch('');
                           }}
@@ -163,6 +174,58 @@ export function CreateDemandPage() {
                         </button>
                       ))}
                     </div>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <div className="field-label" style={{ marginTop: 14 }}>İlçe</div>
+              <div className={`card-block city-card${districtOpen ? ' open' : ''}`}>
+                <button type="button" className="city-trigger" onClick={() => setDistrictOpen((open) => !open)}>
+                  <Icon name="MapPin" size={16} />
+                  <span className={`city-label${district ? '' : ' ph'}`}>{district || 'İlçe seç (opsiyonel)'}</span>
+                  <span className="city-chev">
+                    <Icon name="ChevronRight" size={16} />
+                  </span>
+                </button>
+                {districtOpen && (
+                  <>
+                    <button type="button" className="city-backdrop" aria-label="Kapat" onClick={() => setDistrictOpen(false)} />
+                    <div className="city-panel">
+                      <input
+                        className="city-search"
+                        value={districtSearch}
+                        onChange={(event) => setDistrictSearch(event.target.value)}
+                        placeholder={`${city} ilçesi ara…`}
+                        autoFocus
+                      />
+                      <div className="city-list">
+                        <button
+                          type="button"
+                          className={`city-opt${district === '' ? ' sel' : ''}`}
+                          onClick={() => {
+                            setDistrict('');
+                            setDistrictOpen(false);
+                            setDistrictSearch('');
+                          }}
+                        >
+                          İlçe farketmez
+                        </button>
+                        {filteredDistricts.map((name) => (
+                          <button
+                            key={name}
+                            type="button"
+                            className={`city-opt${name === district ? ' sel' : ''}`}
+                            onClick={() => {
+                              setDistrict(name);
+                              setDistrictOpen(false);
+                              setDistrictSearch('');
+                            }}
+                          >
+                            {name}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </>
                 )}

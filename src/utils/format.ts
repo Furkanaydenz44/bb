@@ -2,6 +2,10 @@ export function formatPrice(value: number) {
   return `${Math.round(value).toLocaleString('tr-TR')}₺`;
 }
 
+export function locationLabel(city: string, district?: string) {
+  return district ? `${city} · ${district}` : city;
+}
+
 export function compactPrice(value: number) {
   return formatPrice(value);
 }

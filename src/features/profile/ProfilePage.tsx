@@ -6,7 +6,7 @@ import { PageHeader } from '../../components/PageHeader';
 import { getDemands, getUser } from '../../services/catalogService';
 import { useAppData } from '../../store/appData';
 import { demandPath, userBase } from '../../utils/routes';
-import { formatPrice } from '../../utils/format';
+import { formatPrice, locationLabel } from '../../utils/format';
 
 export function ProfilePage() {
   const { username = '@ahmetsafak' } = useParams();
@@ -129,7 +129,7 @@ export function ProfilePage() {
                   <Link key={demand.id} className="opportunity-row" to={demandPath(user.username, demand)}>
                     <div>
                       <strong>{demand.title}</strong>
-                      <span>{demand.city} · {demand.badge}</span>
+                      <span>{locationLabel(demand.city, demand.district)} · {demand.badge}</span>
                     </div>
                     <b>{formatPrice(demand.price)}</b>
                     <Icon name="ChevronRight" size={18} />

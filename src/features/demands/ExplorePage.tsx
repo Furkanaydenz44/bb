@@ -4,7 +4,7 @@ import { PageHeader } from '../../components/PageHeader';
 import { categories } from '../../data/categories';
 import { getDemands, getUser } from '../../services/catalogService';
 import { categoryPath, demandPath, userBase } from '../../utils/routes';
-import { formatPrice } from '../../utils/format';
+import { formatPrice, locationLabel } from '../../utils/format';
 
 export function ExplorePage() {
   const { username = '@ahmetsafak' } = useParams();
@@ -18,7 +18,7 @@ export function ExplorePage() {
   const qLower = q.toLocaleLowerCase('tr-TR');
   const results = q
     ? demands.filter((d) =>
-        [d.title, d.description, d.city, categories.find((c) => c.id === d.categoryId)?.name ?? '']
+        [d.title, d.description, d.city, d.district ?? '', categories.find((c) => c.id === d.categoryId)?.name ?? '']
           .join(' ')
           .toLocaleLowerCase('tr-TR')
           .includes(qLower),
@@ -60,7 +60,7 @@ export function ExplorePage() {
                 <Link key={demand.id} className="opportunity-row" to={demandPath(activeUser.username, demand)}>
                   <div>
                     <strong>{demand.title}</strong>
-                    <span>@{owner.username} · {demand.city}</span>
+                    <span>@{owner.username} · {locationLabel(demand.city, demand.district)}</span>
                   </div>
                   <b>{formatPrice(demand.price)}</b>
                   <Icon name="ChevronRight" size={18} />
@@ -102,7 +102,7 @@ export function ExplorePage() {
                 <Link key={demand.id} className="opportunity-row" to={demandPath(activeUser.username, demand)}>
                   <div>
                     <strong>{demand.title}</strong>
-                    <span>@{owner.username} · {demand.city}</span>
+                    <span>@{owner.username} · {locationLabel(demand.city, demand.district)}</span>
                   </div>
                   <b>{formatPrice(demand.price)}</b>
                   <Icon name="ChevronRight" size={18} />

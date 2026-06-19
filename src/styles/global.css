@@ -2375,6 +2375,10 @@ img {
   flex: 1;
   text-align: left;
 }
+.city-label.ph {
+  color: var(--muted);
+  font-weight: 600;
+}
 
 .city-chev {
   display: inline-flex;

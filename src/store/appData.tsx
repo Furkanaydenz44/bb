@@ -75,6 +75,7 @@ export interface CreateDemandInput {
   description: string;
   price: number;
   city: string;
+  district?: string;
   referenceImages?: string[];
 }
 
@@ -241,6 +242,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         description: input.description.trim() || 'Yeni alıcı talebi.',
         price: input.price || 0,
         city: input.city || 'İstanbul',
+        district: input.district?.trim() || undefined,
         badge: 'Aktif Alıcı',
         createdAtLabel: 'az önce',
         coverImage: input.referenceImages?.[0] || CATEGORY_COVER[input.categoryId] || imageIds.camera,
