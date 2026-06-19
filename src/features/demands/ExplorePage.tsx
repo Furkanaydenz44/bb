@@ -1,4 +1,4 @@
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { Icon, type IconName } from '../../components/Icon';
 import { PageHeader } from '../../components/PageHeader';
 import { categories } from '../../data/categories';
@@ -8,10 +8,22 @@ import { formatPrice } from '../../utils/format';
 
 export function ExplorePage() {
   const { username = '@ahmetsafak' } = useParams();
+  const [searchParams] = useSearchParams();
+  const q = (searchParams.get('q') ?? '').trim();
   const activeUser = getUser(username);
   const demands = getDemands();
   const base = userBase(activeUser.username);
   const highValue = [...demands].sort((a, b) => b.price - a.price).slice(0, 4);
+
+  const qLower = q.toLocaleLowerCase('tr-TR');
+  const results = q
+    ? demands.filter((d) =>
+        [d.title, d.description, d.city, categories.find((c) => c.id === d.categoryId)?.name ?? '']
+          .join(' ')
+          .toLocaleLowerCase('tr-TR')
+          .includes(qLower),
+      )
+    : [];
 
   return (
     <div className="page-stack">
@@ -26,14 +38,40 @@ export function ExplorePage() {
         }
       />
 
-      <section className="search-band">
-        <Icon name="Search" size={20} />
-        <input type="search" placeholder="Ürün, kategori veya şehir ara" aria-label="Keşfet araması" />
-        <button className="button ghost" type="button">
-          <Icon name="SlidersHorizontal" size={17} />
-          Filtrele
-        </button>
-      </section>
+      {q ? (
+        <section className="section-heading">
+          <div>
+            <h2>“{q}” için {results.length} sonuç</h2>
+            <p>Talep başlığı, açıklama, şehir ve kategoride eşleşen ilanlar.</p>
+          </div>
+          <Link className="button ghost" to={`${base}/kesfet`}>
+            <Icon name="X" size={16} />
+            Aramayı temizle
+          </Link>
+        </section>
+      ) : null}
+
+      {q ? (
+        <div className="opportunity-list">
+          {results.length ? (
+            results.map((demand) => {
+              const owner = getUser(demand.ownerId);
+              return (
+                <Link key={demand.id} className="opportunity-row" to={demandPath(activeUser.username, demand)}>
+                  <div>
+                    <strong>{demand.title}</strong>
+                    <span>@{owner.username} · {demand.city}</span>
+                  </div>
+                  <b>{formatPrice(demand.price)}</b>
+                  <Icon name="ChevronRight" size={18} />
+                </Link>
+              );
+            })
+          ) : (
+            <div className="empty-inline">Eşleşen talep bulunamadı. Farklı bir kelime dene.</div>
+          )}
+        </div>
+      ) : null}
 
       <section className="category-board">
         {categories.map((category) => {

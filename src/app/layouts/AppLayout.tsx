@@ -3,6 +3,7 @@ import { NavLink, Navigate, Outlet, useNavigate, useParams } from 'react-router-
 import { Avatar } from '../../components/Avatar';
 import { Icon, type IconName } from '../../components/Icon';
 import { getAllUsers, getCurrentUser, login, logout } from '../../services/session';
+import { useAppData } from '../../store/appData';
 import { userBase } from '../../utils/routes';
 
 const primaryNav: Array<{ label: string; icon: IconName; path: string }> = [
@@ -17,7 +18,10 @@ export function AppLayout() {
   const { username = '' } = useParams();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [query, setQuery] = useState('');
   const session = getCurrentUser();
+  const { creditsOf, unreadCount, getUserNotifications, markNotificationsRead } = useAppData();
 
   // Giriş yoksa giriş ekranına; URL başka bir kullanıcıyı gösteriyorsa kendi alanına döndür.
   if (!session) return <Navigate to="/giris" replace />;
@@ -28,6 +32,9 @@ export function AppLayout() {
   const activeUser = session;
   const base = userBase(activeUser.username);
   const accounts = getAllUsers();
+  const credits = creditsOf(activeUser.id);
+  const unread = unreadCount(activeUser.id);
+  const notifs = getUserNotifications(activeUser.id).slice(0, 10);
 
   function switchTo(userId: string, uname: string) {
     setMenuOpen(false);
@@ -39,50 +46,89 @@ export function AppLayout() {
     logout();
     navigate('/giris');
   }
+  function onSearch(event: React.FormEvent) {
+    event.preventDefault();
+    const q = query.trim();
+    navigate(`${base}/kesfet${q ? `?q=${encodeURIComponent(q)}` : ''}`);
+  }
+  function toggleNotif() {
+    setNotifOpen((open) => {
+      const next = !open;
+      if (next && unread) markNotificationsRead(activeUser.id);
+      return next;
+    });
+  }
 
   return (
     <div className="app-shell">
-      <aside className="sidebar">
-        <NavLink className="brand-block" to={base} aria-label="Bulbana">
-          <span className="brand-mark">
-            <Icon name="Search" size={21} />
+      <header className="topbar2">
+        <div className="topbar2-strip">
+          <span className="role-note">
+            <Icon name="ShieldCheck" size={14} />
+            Tek hesap · işleme göre alıcı/satıcı
           </span>
-        </NavLink>
-        <nav className="side-nav" aria-label="Ana menü">
-          {primaryNav.map((item) => (
-            <NavLink
-              key={item.path || 'home'}
-              to={item.path ? `${base}/${item.path}` : base}
-              end={item.path === ''}
-              className="nav-icon"
-              title={item.label}
-            >
-              <Icon name={item.icon} size={20} />
-              <span>{item.label}</span>
-            </NavLink>
-          ))}
-        </nav>
-      </aside>
+          <div className="strip-links">
+            <NavLink to={`${base}/araclar/teklif-kredisi`}>Kredi Hesapla</NavLink>
+            <NavLink to={`${base}/kredi`}>Kredi Paketleri</NavLink>
+            <NavLink to={`${base}/talep-ac`}>Talep Aç</NavLink>
+          </div>
+        </div>
 
-      <div className="app-main">
-        <header className="topbar-app">
-          <NavLink className="wordmark" to={base}>
+        <div className="topbar2-main">
+          <NavLink className="wordmark2" to={base} aria-label="Bulbana ana sayfa">
             <span className="brand-mark small">
               <Icon name="Search" size={18} />
             </span>
             Bulbana
           </NavLink>
 
-          <div className="role-note">
-            <Icon name="ShieldCheck" size={14} />
-            Tek hesap · işleme göre alıcı/satıcı
-          </div>
+          <form className="topsearch" onSubmit={onSearch} role="search">
+            <Icon name="Search" size={20} />
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Talep, kategori veya ürün ara"
+              aria-label="Ara"
+            />
+            <button type="submit" className="topsearch-btn">Ara</button>
+          </form>
 
-          <div className="user-cluster">
+          <div className="topactions">
             <NavLink className="credit-pill" to={`${base}/kredi`}>
-              <Icon name="CreditCard" size={15} />
-              {activeUser.credits} kredi
+              <Icon name="WalletCards" size={16} />
+              {credits} kredi
             </NavLink>
+
+            <div className="bell-wrap">
+              <button type="button" className="icon-btn" onClick={toggleNotif} aria-label="Bildirimler">
+                <Icon name="Bell" size={19} />
+                {unread ? <span className="bell-badge">{unread > 9 ? '9+' : unread}</span> : null}
+              </button>
+              {notifOpen && (
+                <>
+                  <button type="button" className="acct-backdrop" aria-label="Kapat" onClick={() => setNotifOpen(false)} />
+                  <div className="notif-menu">
+                    <div className="acct-menu-label">Bildirimler</div>
+                    {notifs.length ? (
+                      notifs.map((n) => (
+                        <NavLink
+                          key={n.id}
+                          className="notif-item"
+                          to={`${base}${n.href ?? ''}`}
+                          onClick={() => setNotifOpen(false)}
+                        >
+                          <span className="notif-dot" />
+                          <span className="notif-text">{n.text}</span>
+                        </NavLink>
+                      ))
+                    ) : (
+                      <div className="notif-empty">Henüz bildirim yok.</div>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+
             <div className="acct">
               <button type="button" className="acct-trigger" onClick={() => setMenuOpen((open) => !open)}>
                 <Avatar label={activeUser.avatar} />
@@ -117,12 +163,26 @@ export function AppLayout() {
               )}
             </div>
           </div>
-        </header>
+        </div>
 
-        <main className="content-shell">
-          <Outlet />
-        </main>
-      </div>
+        <nav className="topbar2-nav" aria-label="Ana menü">
+          {primaryNav.map((item) => (
+            <NavLink
+              key={item.path || 'home'}
+              to={item.path ? `${base}/${item.path}` : base}
+              end={item.path === ''}
+              className={`topnav-link${item.path === 'talep-ac' ? ' cta' : ''}`}
+            >
+              <Icon name={item.icon} size={17} />
+              {item.label}
+            </NavLink>
+          ))}
+        </nav>
+      </header>
+
+      <main className="content-shell">
+        <Outlet />
+      </main>
     </div>
   );
 }
