@@ -1828,6 +1828,148 @@ img {
   .kredi-policy { grid-template-columns: 1fr; }
 }
 
+/* ====== Profil (derli toplu) ====== */
+.prof-hero {
+  padding: 24px 26px;
+  border-radius: 22px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: 0 1px 2px rgba(74, 46, 120, 0.04), 0 22px 44px -34px rgba(74, 46, 120, 0.4);
+}
+.prof-id {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.prof-id .avatar { flex: 0 0 auto; }
+.prof-id-main { flex: 1; min-width: 0; }
+.prof-handle {
+  color: var(--purple-dark);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.prof-id-main h1 {
+  margin: 4px 0 0;
+  font-size: 27px;
+  line-height: 1.1;
+}
+.prof-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin: 9px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+.prof-meta span { display: inline-flex; align-items: center; gap: 6px; }
+.prof-meta svg { color: var(--purple); }
+.prof-rating {
+  flex: 0 0 auto;
+  text-align: center;
+  padding: 12px 20px;
+  border-radius: 16px;
+  background: var(--surface-green);
+  border: 1px solid #d8eba6;
+}
+.prof-rating strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-d);
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--green-ink);
+}
+.prof-rating strong svg { color: var(--green-dark); }
+.prof-rating span {
+  display: block;
+  margin-top: 2px;
+  font-size: 11.5px;
+  color: #5c7a00;
+  font-weight: 700;
+}
+.prof-trust {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 9px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+.prof-trust-label {
+  color: var(--muted);
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-right: 4px;
+}
+.prof-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 13px;
+  border-radius: 999px;
+  background: var(--purple-soft);
+  border: 1px solid rgba(157, 78, 221, 0.16);
+  color: var(--purple-dark);
+  font-size: 12.5px;
+  font-weight: 700;
+}
+.prof-chip svg { color: var(--purple); }
+
+.prof-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+.prof-stat {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 18px 20px;
+  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+.prof-stat-ic {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: var(--purple-soft);
+  color: var(--purple-dark);
+}
+.prof-stat strong {
+  display: block;
+  font-family: var(--font-d);
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--ink);
+}
+.prof-stat > div span {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.prof-block { display: grid; gap: 14px; }
+
+@media (max-width: 840px) {
+  .prof-id { flex-wrap: wrap; }
+  .prof-rating { order: 3; width: 100%; text-align: left; }
+  .prof-stats { grid-template-columns: repeat(2, 1fr); }
+}
+
 /* ====== demand grid card extras (feed + create preview) ====== */
 .demand-card-body {
   gap: 7px;
