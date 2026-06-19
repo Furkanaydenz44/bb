@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useRef, useState, type ChangeEvent } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Icon, type IconName } from '../../components/Icon';
+import { Modal } from '../../components/Modal';
 import { imageSrc } from '../../data/images';
+import { filesToDataUrls } from '../../lib/imageUpload';
 import { getCategory, getUser, offerCreditEstimate } from '../../services/catalogService';
 import { categoryPath, presentationPath, userBase } from '../../utils/routes';
 import { formatPrice, viewersOf } from '../../utils/format';
@@ -19,6 +21,11 @@ export function DemandDetailPage() {
   const { getDemandByRoute, getDemandPresentations, getDemandOffers, createPresentation } = useAppData();
   const demand = getDemandByRoute(demandSlug);
   const [activeImage, setActiveImage] = useState(0);
+  const [presenting, setPresenting] = useState(false);
+  const [presentPhotos, setPresentPhotos] = useState<string[]>([]);
+  const [presentNote, setPresentNote] = useState('');
+  const [presentCondition, setPresentCondition] = useState('İkinci el · iyi durumda');
+  const presentFileRef = useRef<HTMLInputElement>(null);
 
   if (!demand) {
     return (
@@ -41,8 +48,27 @@ export function DemandDetailPage() {
   const isOwner = routeUser.id === demand.ownerId;
   const visiblePresentations = isOwner ? presentations : presentations.filter((p) => p.sellerId === routeUser.id);
   const myPresentation = presentations.find((p) => p.sellerId === routeUser.id);
-  const presentNow = () =>
-    createPresentation({ demandId: demand.id, sellerId: routeUser.id, city: routeUser.city });
+  async function onPickPresentFiles(event: ChangeEvent<HTMLInputElement>) {
+    const files = event.target.files;
+    if (!files?.length) return;
+    const urls = await filesToDataUrls(files, { maxDim: 1400 });
+    setPresentPhotos((prev) => [...prev, ...urls].slice(0, 8));
+    event.target.value = '';
+  }
+  function submitPresentation() {
+    if (!presentPhotos.length) return;
+    createPresentation({
+      demandId: demand.id,
+      sellerId: routeUser.id,
+      city: routeUser.city,
+      images: presentPhotos,
+      description: presentNote,
+      condition: presentCondition,
+    });
+    setPresenting(false);
+    setPresentPhotos([]);
+    setPresentNote('');
+  }
 
   const images = Array.from(new Set([demand.coverImage, ...demand.referenceImages]));
   const safeIndex = Math.min(activeImage, images.length - 1);
@@ -211,7 +237,7 @@ export function DemandDetailPage() {
                 </div>
               ) : (
                 <>
-                  <button type="button" className="detail-sun-btn" onClick={presentNow}>
+                  <button type="button" className="detail-sun-btn" onClick={() => setPresenting(true)}>
                     <Icon name="Store" size={17} /> Ürün Sun
                   </button>
                   <div className="detail-hint">
@@ -274,6 +300,62 @@ export function DemandDetailPage() {
           </section>
         </aside>
       </div>
+
+      <Modal
+        open={presenting}
+        onClose={() => setPresenting(false)}
+        title="Ürün Sun"
+        footer={
+          <>
+            <button type="button" className="button ghost" onClick={() => setPresenting(false)}>
+              Vazgeç
+            </button>
+            <button type="button" className="button primary" disabled={!presentPhotos.length} onClick={submitPresentation}>
+              <Icon name="Send" size={16} /> Sunumu Gönder
+            </button>
+          </>
+        }
+      >
+        <div className="present-form">
+          <div className="field-label">Ürün görselleri · {presentPhotos.length}/8</div>
+          <div className="ref-grid">
+            {presentPhotos.map((src, index) => (
+              <div key={index} className="ref-thumb">
+                <img src={imageSrc(src, 220)} alt="" />
+                {index === 0 ? <span className="ref-cap">Kapak</span> : null}
+                <button
+                  type="button"
+                  className="ref-x"
+                  aria-label="Kaldır"
+                  onClick={() => setPresentPhotos((prev) => prev.filter((_, i) => i !== index))}
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+            {presentPhotos.length < 8 ? (
+              <button type="button" className="ref-add" onClick={() => presentFileRef.current?.click()}>
+                <Icon name="Plus" size={18} />
+                <span>Foto ekle</span>
+              </button>
+            ) : null}
+            <input ref={presentFileRef} type="file" accept="image/*" multiple hidden onChange={onPickPresentFiles} />
+          </div>
+          <label className="present-field">
+            <span>Durum</span>
+            <input value={presentCondition} onChange={(event) => setPresentCondition(event.target.value)} placeholder="İkinci el · iyi durumda" />
+          </label>
+          <label className="present-field">
+            <span>Açıklama / not</span>
+            <textarea
+              value={presentNote}
+              onChange={(event) => setPresentNote(event.target.value)}
+              rows={3}
+              placeholder="Ürünün durumu, orijinallik, teslimat…"
+            />
+          </label>
+        </div>
+      </Modal>
     </div>
   );
 }
