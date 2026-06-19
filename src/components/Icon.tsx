@@ -1,5 +1,9 @@
 import {
   ArrowLeft,
+  ArrowLeftRight,
+  ArrowUp,
+  ArrowDown,
+  Coins,
   BadgeCheck,
   BarChart3,
   Bell,
@@ -60,6 +64,10 @@ import type { LucideProps } from 'lucide-react';
 
 const icons = {
   ArrowLeft,
+  ArrowLeftRight,
+  ArrowUp,
+  ArrowDown,
+  Coins,
   BadgeCheck,
   BarChart3,
   Bell,

@@ -128,7 +128,7 @@ interface AppDataValue {
   requestOffer: (presentationId: string, byUserId: UserId) => void;
   rejectPresentation: (presentationId: string, byUserId: UserId) => void;
   sendOffer: (input: SendOfferInput, byUserId: UserId) => Thread | undefined;
-  counterOffer: (offerId: string, price: number, byUserId: UserId) => void;
+  counterOffer: (offerId: string, price: number, byUserId: UserId, note?: string) => void;
   acceptOffer: (offerId: string, byUserId: UserId) => Deal | undefined;
   rejectOffer: (offerId: string, byUserId: UserId) => void;
   markShipped: (dealId: string, info: { trackingNo?: string; carrier?: string }, byUserId: UserId) => void;
@@ -321,12 +321,12 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       setOffers((prev) => [offer, ...prev]);
       const thread = ensureThread(demand.id, pres.id, demand.ownerId, pres.sellerId);
       pushMessage(thread.id, byUserId, 'system', `Sohbet açıldı · teklif maliyeti ${cost} kredi (ilanda yalnız 1 kez; pazarlık ücretsiz).`);
-      pushMessage(thread.id, byUserId, 'offer', `Resmi teklif: ${input.price.toLocaleString('tr-TR')}₺${input.note ? ' — ' + input.note : ''}`, input.price);
+      pushMessage(thread.id, byUserId, 'offer', input.note?.trim() ?? '', input.price);
       notify(demand.ownerId, 'offer', `${nameOf(pres.sellerId)} ${input.price.toLocaleString('tr-TR')}₺ resmi teklif verdi`, threadHref(thread));
       return thread;
     },
 
-    counterOffer: (offerId, price, byUserId) => {
+    counterOffer: (offerId, price, byUserId, note) => {
       const offer = allOffers.find((o) => o.id === offerId);
       if (!offer) return;
       const isBuyer = byUserId === offer.buyerId;
@@ -336,7 +336,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         history: [...offer.history, { actor: isBuyer ? 'buyer' : 'seller', action: 'counter', price, at: Date.now() }],
       });
       const thread = ensureThread(offer.demandId, offer.presentationId, offer.buyerId, offer.sellerId);
-      pushMessage(thread.id, byUserId, 'offer', `Karşı teklif: ${price.toLocaleString('tr-TR')}₺`, price);
+      pushMessage(thread.id, byUserId, 'offer', note?.trim() ?? '', price);
       const other = isBuyer ? offer.sellerId : offer.buyerId;
       notify(other, 'counter', `${nameOf(byUserId)} karşı teklif verdi: ${price.toLocaleString('tr-TR')}₺`, threadHref(thread));
     },
