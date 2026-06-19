@@ -56,7 +56,7 @@ export function DemandDetailPage() {
     event.target.value = '';
   }
   function submitPresentation() {
-    if (!presentPhotos.length) return;
+    if (!demand || !presentPhotos.length) return;
     createPresentation({
       demandId: demand.id,
       sellerId: routeUser.id,

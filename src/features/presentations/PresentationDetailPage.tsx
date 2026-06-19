@@ -49,7 +49,7 @@ export function PresentationDetailPage() {
   const balance = creditsOf(routeUser.id);
 
   function submitOffer() {
-    if (offerPrice <= 0) return;
+    if (!presentation || offerPrice <= 0) return;
     const created = sendOffer({ presentationId: presentation.id, price: offerPrice, note: offerNote }, routeUser.id);
     setOffering(false);
     setOfferNote('');
