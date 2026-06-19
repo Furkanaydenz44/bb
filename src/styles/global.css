@@ -1830,18 +1830,33 @@ img {
 
 /* ====== Profil (derli toplu) ====== */
 .prof-hero {
-  padding: 24px 26px;
+  position: relative;
+  overflow: hidden;
+  padding: 0 0 20px;
   border-radius: 22px;
   background: var(--surface);
   border: 1px solid var(--line);
   box-shadow: 0 1px 2px rgba(74, 46, 120, 0.04), 0 22px 44px -34px rgba(74, 46, 120, 0.4);
 }
+.prof-cover {
+  height: 78px;
+  background:
+    radial-gradient(120% 170% at 86% -30%, rgba(200, 244, 48, 0.5), transparent 55%),
+    linear-gradient(120deg, #381e5c 0%, #6d28b8 58%, #9d4edd 100%);
+}
 .prof-id {
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 16px;
+  padding: 16px 26px 0;
 }
-.prof-id .avatar { flex: 0 0 auto; }
+.prof-id .avatar {
+  flex: 0 0 auto;
+  width: 68px;
+  height: 68px;
+  font-size: 19px;
+  box-shadow: 0 8px 18px -8px rgba(74, 46, 120, 0.45);
+}
 .prof-id-main { flex: 1; min-width: 0; }
 .prof-handle {
   color: var(--purple-dark);
@@ -1896,7 +1911,7 @@ img {
   flex-wrap: wrap;
   align-items: center;
   gap: 9px;
-  margin-top: 18px;
+  margin: 18px 26px 0;
   padding-top: 16px;
   border-top: 1px solid var(--line);
 }
@@ -1922,52 +1937,167 @@ img {
 }
 .prof-chip svg { color: var(--purple); }
 
-.prof-stats {
+/* Profil gövdesi: iki kolon */
+.prof-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
+  grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
 }
-.prof-stat {
-  display: flex;
-  align-items: center;
-  gap: 13px;
-  padding: 18px 20px;
-  border-radius: 16px;
+.prof-col-main,
+.prof-col-side {
+  display: grid;
+  gap: 18px;
+  align-content: start;
+}
+
+.prof-panel {
+  padding: 22px 24px;
+  border-radius: 18px;
   background: var(--surface);
   border: 1px solid var(--line);
 }
-.prof-stat-ic {
-  width: 42px;
-  height: 42px;
+.prof-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+.prof-panel-head h2 { margin: 0; font-size: 17px; }
+
+/* Performans: halka + metrikler */
+.prof-perf {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+.prof-ring {
   flex: 0 0 auto;
-  border-radius: 12px;
+  width: 118px;
+  height: 118px;
+  border-radius: 50%;
+  background: conic-gradient(var(--green) calc(var(--pct, 0) * 1%), var(--surface-soft) 0);
+  display: grid;
+  place-items: center;
+  position: relative;
+}
+.prof-ring::before {
+  content: "";
+  position: absolute;
+  inset: 11px;
+  border-radius: 50%;
+  background: var(--surface);
+}
+.prof-ring-c { position: relative; text-align: center; }
+.prof-ring-c strong {
+  display: block;
+  font-family: var(--font-d);
+  font-size: 29px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--ink);
+}
+.prof-ring-c strong small { font-size: 15px; color: var(--muted); margin-left: 1px; }
+.prof-ring-c span {
+  display: block;
+  margin-top: 3px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--muted);
+}
+.prof-perf-metrics {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.prof-metric {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  column-gap: 11px;
+  row-gap: 1px;
+  padding: 12px 14px;
+  border-radius: 13px;
+  background: var(--surface-soft);
+}
+.prof-metric-ic {
+  grid-row: 1 / 3;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: var(--surface);
+  color: var(--purple);
+}
+.prof-metric strong {
+  grid-column: 2;
+  align-self: end;
+  font-family: var(--font-d);
+  font-size: 19px;
+  font-weight: 800;
+  line-height: 1.05;
+  color: var(--ink);
+}
+.prof-metric > span:last-child {
+  grid-column: 2;
+  align-self: start;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.prof-block { display: grid; gap: 14px; }
+
+/* Hesap özeti listesi */
+.prof-summary {
+  list-style: none;
+  margin: 0 0 16px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.prof-summary li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+.prof-summary li:last-child { border-bottom: 0; }
+.prof-sum-ic {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  border-radius: 10px;
   display: grid;
   place-items: center;
   background: var(--purple-soft);
   color: var(--purple-dark);
 }
-.prof-stat strong {
-  display: block;
-  font-family: var(--font-d);
-  font-size: 24px;
-  font-weight: 800;
-  line-height: 1;
-  color: var(--ink);
-}
-.prof-stat > div span {
-  display: block;
-  margin-top: 4px;
+.prof-sum-l {
+  flex: 1;
   color: var(--muted);
-  font-size: 12.5px;
+  font-size: 13.5px;
   font-weight: 600;
 }
+.prof-summary li b {
+  font-family: var(--font-d);
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--ink);
+}
 
-.prof-block { display: grid; gap: 14px; }
-
+@media (max-width: 980px) {
+  .prof-grid { grid-template-columns: 1fr; }
+}
 @media (max-width: 840px) {
   .prof-id { flex-wrap: wrap; }
   .prof-rating { order: 3; width: 100%; text-align: left; }
-  .prof-stats { grid-template-columns: repeat(2, 1fr); }
+  .prof-perf { flex-direction: column; align-items: stretch; gap: 18px; }
+  .prof-ring { align-self: center; }
 }
 
 /* ====== demand grid card extras (feed + create preview) ====== */
