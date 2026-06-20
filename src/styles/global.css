@@ -36,6 +36,9 @@
 html {
   min-width: 320px;
   background: var(--bg);
+  /* Scrollbar yerini her zaman ayır: kısa/uzun sayfa geçişlerinde yatay kayma olmasın */
+  overflow-y: scroll;
+  scrollbar-gutter: stable;
 }
 
 body {
