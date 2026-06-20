@@ -5,6 +5,7 @@ import { PageHeader } from '../../components/PageHeader';
 import { imageSrc } from '../../data/images';
 import { getDemands, getUser } from '../../services/catalogService';
 import { useAppData } from '../../store/appData';
+import { userLevel } from '../../lib/level';
 import { demandPath, userBase } from '../../utils/routes';
 import { formatPrice, locationLabel } from '../../utils/format';
 
@@ -15,6 +16,7 @@ export function ProfilePage() {
   const ownedDemands = getDemands().filter((demand) => demand.ownerId === user.id);
   const totalBudget = ownedDemands.reduce((sum, demand) => sum + demand.price, 0);
   const base = userBase(user.username);
+  const lvl = userLevel(user);
 
   const stats = [
     { value: String(user.sales), label: 'İşlem' },
@@ -39,7 +41,10 @@ export function ProfilePage() {
 
       <div className="pf">
         <div className="pf-id">
-          <Avatar label={user.avatar} size="lg" />
+          <div className="pf-avatar">
+            <Avatar label={user.avatar} size="lg" />
+            <span className="pf-level-pip" title={`Seviye ${lvl.level}`}>{lvl.level}</span>
+          </div>
           <div className="pf-id-main">
             <h1>{user.name}</h1>
             <div className="pf-id-sub">
@@ -60,6 +65,19 @@ export function ProfilePage() {
                 ))}
               </div>
             ) : null}
+          </div>
+        </div>
+
+        <div className="pf-level">
+          <div className="pf-level-top">
+            <span className="pf-level-badge">
+              <Icon name="Sparkles" size={14} />
+              Seviye {lvl.level} · {lvl.tier}
+            </span>
+            <span className="pf-level-next">Seviye {lvl.level + 1}’e {lvl.toNext} puan</span>
+          </div>
+          <div className="pf-level-bar">
+            <span style={{ width: `${lvl.pct}%` }} />
           </div>
         </div>
 
