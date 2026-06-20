@@ -116,12 +116,9 @@ export function ProfilePage() {
             </div>
           </section>
 
-          <section className="prof-block">
-            <div className="section-heading">
-              <div>
-                <h2>Kullanıcının talepleri</h2>
-                <p>Bu kullanıcı adına bağlı açık ilanlar.</p>
-              </div>
+          <section className="prof-panel">
+            <div className="prof-panel-head">
+              <h2>Kullanıcının talepleri</h2>
               <span className="muted-count">{ownedDemands.length} ilan</span>
             </div>
             {ownedDemands.length ? (
