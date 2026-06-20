@@ -5,8 +5,9 @@ import { Icon, type IconName } from '../../components/Icon';
 import { PageHeader } from '../../components/PageHeader';
 import { getDemands, getUser } from '../../services/catalogService';
 import { useAppData } from '../../store/appData';
-import { demandPath, userBase } from '../../utils/routes';
-import { formatPrice, locationLabel } from '../../utils/format';
+import { userBase } from '../../utils/routes';
+import { formatPrice } from '../../utils/format';
+import { DemandCard } from '../demands/DemandCard';
 
 export function ProfilePage() {
   const { username = '@ahmetsafak' } = useParams();
@@ -123,25 +124,18 @@ export function ProfilePage() {
               </div>
               <span className="muted-count">{ownedDemands.length} ilan</span>
             </div>
-            <div className="opportunity-list">
-              {ownedDemands.length ? (
-                ownedDemands.map((demand) => (
-                  <Link key={demand.id} className="opportunity-row" to={demandPath(user.username, demand)}>
-                    <div>
-                      <strong>{demand.title}</strong>
-                      <span>{locationLabel(demand.city, demand.district)} · {demand.badge}</span>
-                    </div>
-                    <b>{formatPrice(demand.price)}</b>
-                    <Icon name="ChevronRight" size={18} />
-                  </Link>
-                ))
-              ) : (
-                <div className="empty-inline">
-                  <Icon name="Inbox" size={22} />
-                  <span>Bu kullanıcıya bağlı açık talep yok.</span>
-                </div>
-              )}
-            </div>
+            {ownedDemands.length ? (
+              <div className="demand-grid">
+                {ownedDemands.map((demand) => (
+                  <DemandCard key={demand.id} demand={demand} />
+                ))}
+              </div>
+            ) : (
+              <div className="empty-inline">
+                <Icon name="Inbox" size={22} />
+                <span>Bu kullanıcıya bağlı açık talep yok.</span>
+              </div>
+            )}
           </section>
         </div>
       </div>
