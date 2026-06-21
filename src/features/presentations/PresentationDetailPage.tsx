@@ -30,7 +30,7 @@ export function PresentationDetailPage() {
         <h1>Sunum bulunamadı</h1>
         <p>Bu sunum kaldırılmış olabilir ya da talep ile eşleşmiyor.</p>
         <Link className="button primary" to={demand ? demandPath(routeUser.username, demand) : userBase(routeUser.username)}>
-          İlan Detayına Dön
+          Talebe Dön
         </Link>
       </div>
     );
@@ -110,7 +110,7 @@ export function PresentationDetailPage() {
             <div>
               <Icon name="Image" size={17} />
               <strong>Kanıt seti</strong>
-              <span>{presentation.images.length} görsel · {presentation.videos} video</span>
+              <span>{presentation.images.length} görsel{presentation.videos ? ` · ${presentation.videos} video` : ''}</span>
             </div>
             <div>
               <Icon name="MapPin" size={17} />

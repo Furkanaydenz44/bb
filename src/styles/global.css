@@ -53,6 +53,13 @@ body {
   background-size: 32px 32px;
 }
 
+/* Klavye odağı: her interaktif öğede görünür halka */
+:focus-visible {
+  outline: 2px solid var(--purple);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
 h1,
 h2,
 h3 {
@@ -904,7 +911,7 @@ img {
 
 .rail-panel {
   position: sticky;
-  top: 96px;
+  top: 128px;
   padding: 18px;
   display: grid;
   gap: 16px;
@@ -1156,7 +1163,7 @@ img {
 
 .action-panel {
   position: sticky;
-  top: 96px;
+  top: 128px;
   padding: 20px;
   display: grid;
   gap: 14px;
@@ -1382,7 +1389,7 @@ img {
 .preview-panel,
 .result-panel {
   position: sticky;
-  top: 96px;
+  top: 128px;
   padding: 20px;
   display: grid;
   gap: 14px;
@@ -1427,8 +1434,10 @@ img {
   padding: 32px;
 }
 
-.empty-state h1 {
+.empty-state h1,
+.empty-state h2 {
   margin: 0;
+  font-size: 22px;
 }
 
 .empty-state p {
@@ -2602,6 +2611,7 @@ img {
 }
 
 .present-field input,
+.present-field select,
 .present-field textarea {
   border: 1.5px solid var(--line-strong);
   border-radius: 12px;
@@ -2611,6 +2621,11 @@ img {
   color: var(--ink);
   background: var(--surface);
 }
+.present-field input:focus,
+.present-field select:focus {
+  border-color: var(--purple);
+}
+.muted-count.warn { color: #b5462e; }
 
 .present-field input:focus,
 .present-field textarea:focus {
@@ -2634,7 +2649,7 @@ img {
 
 .create-side {
   position: sticky;
-  top: 96px;
+  top: 128px;
   display: flex;
   flex-direction: column;
 }
@@ -2681,6 +2696,18 @@ img {
   .calculator-layout,
   .inbox-layout {
     grid-template-columns: 1fr;
+  }
+
+  .inbox-layout {
+    height: auto;
+    min-height: 0;
+  }
+  .inbox-layout .thread-list {
+    max-height: 38vh;
+  }
+  .inbox-layout .chat-panel {
+    height: 70vh;
+    min-height: 440px;
   }
 
   .rail-panel,
@@ -2863,7 +2890,7 @@ img {
 
 .detail-aside {
   position: sticky;
-  top: 88px;
+  top: 128px;
   min-width: 0;
   display: grid;
   gap: 14px;
@@ -4058,8 +4085,16 @@ img {
 
 .ship-grid {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   width: 100%;
+}
+@media (max-width: 520px) {
+  .ship-grid select,
+  .ship-grid input,
+  .ship-grid .button {
+    flex: 1 1 100%;
+  }
 }
 
 .ship-grid select,

@@ -67,9 +67,9 @@ export function DemandListPage() {
       <div className="section-heading">
         <div>
           <h2>{activeCategory ? `${activeCategory.shortName} talepleri` : 'Tüm talepler'}</h2>
-          <p>Her karta tıklandığında ilan sahibinin gerçek URL yapısı açılır.</p>
+          <p>Bütçesine uygun ürünü olan satıcılar bu taleplere sunum gönderir.</p>
         </div>
-        <span className="muted-count">{demands.length} ilan</span>
+        <span className="muted-count">{demands.length} talep</span>
       </div>
       <div className="demand-grid">
         {demands.map((demand) => (

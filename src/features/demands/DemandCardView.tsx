@@ -8,7 +8,6 @@ export interface DemandCardViewProps {
   /** Already-formatted price string (e.g. "55.000₺") or a placeholder ("Fiyat belirt"). */
   price: string;
   timeLabel: string;
-  views: number;
   ownerName: string;
   ownerAvatar: string;
   ownerScore: number;
@@ -23,7 +22,6 @@ export function DemandCardView({
   title,
   price,
   timeLabel,
-  views,
   ownerName,
   ownerAvatar,
   ownerScore,
@@ -39,7 +37,7 @@ export function DemandCardView({
           <Icon name="Clock" size={12} /> {timeLabel}
         </span>
         <span className="floating-meta meta-right">
-          <Icon name="Eye" size={12} /> {views}
+          <Icon name="Inbox" size={12} /> {presentationCount} sunum
         </span>
       </div>
       <div className="demand-card-body">
@@ -70,7 +68,7 @@ export function DemandCardView({
         <div className="card-pline">
           {mine
             ? presentationCount
-              ? `${presentationCount} teklif geldi`
+              ? `${presentationCount} sunum geldi`
               : 'Sunum bekleniyor'
             : presentationCount
               ? `${presentationCount} satıcı sundu`

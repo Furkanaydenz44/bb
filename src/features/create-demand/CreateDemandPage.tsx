@@ -294,7 +294,6 @@ export function CreateDemandPage() {
               title={title.trim() || 'Talep başlığın burada görünecek'}
               price={price ? formatPrice(price) : 'Fiyat belirt'}
               timeLabel="az önce"
-              views={16}
               ownerName={shortName(activeUser.name)}
               ownerAvatar={activeUser.avatar}
               ownerScore={activeUser.score}

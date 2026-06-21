@@ -136,7 +136,7 @@ export function MessagesPage() {
           {accepted ? (
             <div className="ocard-accepted">
               <span className="ocard-check"><Icon name="Check" size={16} /></span>
-              Kabul edildi · alışveriş onaylandı
+              Kabul edildi · anlaşma sağlandı
             </div>
           ) : superseded ? (
             <div className="ocard-meta">
@@ -176,9 +176,11 @@ export function MessagesPage() {
             </div>
           ) : showActions ? (
             <div className="ocard-actions">
-              <button className="ocard-btn ocard-btn--accept" type="button" onClick={() => acceptOffer(offer!.id, me.id)}>
-                <Icon name="Check" size={16} /> Onayla
-              </button>
+              {iAmBuyer ? (
+                <button className="ocard-btn ocard-btn--accept" type="button" onClick={() => acceptOffer(offer!.id, me.id)}>
+                  <Icon name="Check" size={16} /> Kabul Et
+                </button>
+              ) : null}
               <button className="ocard-btn ocard-btn--counter" type="button" onClick={openCounter}>
                 <Icon name="ArrowLeftRight" size={16} /> Pazarlık
               </button>
@@ -236,11 +238,11 @@ export function MessagesPage() {
         <div className="chat-action ship-box">
           <div className="deadline-pill"><Icon name="Clock" size={14} /> Kargo için {deadlineLabel(deal.deadlineAt)}</div>
           <div className="ship-grid">
-            <select value={carrier} onChange={(e) => setCarrier(e.target.value)}>
+            <select value={carrier} onChange={(e) => setCarrier(e.target.value)} aria-label="Kargo firması">
               <option value="">Kargo firması…</option>
               {CARRIERS.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
-            <input value={trackingNo} onChange={(e) => setTrackingNo(e.target.value)} placeholder="Kargo takip numarası" />
+            <input value={trackingNo} onChange={(e) => setTrackingNo(e.target.value)} placeholder="Kargo takip numarası" aria-label="Kargo takip numarası" />
             <button className="button primary" type="button" disabled={!carrier || !trackingNo.trim()} onClick={ship}>
               <Icon name="Truck" size={16} /> Kargoladım
             </button>
@@ -334,6 +336,7 @@ export function MessagesPage() {
                     if (event.key === 'Enter') send();
                   }}
                   placeholder="Mesaj yaz…"
+                  aria-label="Mesaj yaz"
                 />
                 <button className="button primary" type="button" onClick={send} aria-label="Gönder">
                   <Icon name="Send" size={16} />
@@ -343,7 +346,7 @@ export function MessagesPage() {
           ) : (
             <div className="empty-state">
               <Icon name="MessageCircle" size={28} />
-              <h1>Sohbet seç</h1>
+              <h2>Sohbet seç</h2>
               <p>Soldan bir sohbet seç. Teklif verilince yeni sohbet burada açılır.</p>
             </div>
           )}

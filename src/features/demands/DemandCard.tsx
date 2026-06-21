@@ -2,7 +2,7 @@ import { Link, useParams } from 'react-router-dom';
 import type { Demand } from '../../data/types';
 import { getUser } from '../../services/catalogService';
 import { useAppData } from '../../store/appData';
-import { formatPrice, progressPct, shortName, viewersOf } from '../../utils/format';
+import { formatPrice, progressPct, shortName } from '../../utils/format';
 import { demandPath } from '../../utils/routes';
 import { DemandCardView } from './DemandCardView';
 
@@ -25,7 +25,6 @@ export function DemandCard({ demand }: DemandCardProps) {
         title={demand.title}
         price={formatPrice(demand.price)}
         timeLabel={demand.createdAtLabel}
-        views={viewersOf(demand.id)}
         ownerName={shortName(owner.name)}
         ownerAvatar={owner.avatar}
         ownerScore={owner.score}

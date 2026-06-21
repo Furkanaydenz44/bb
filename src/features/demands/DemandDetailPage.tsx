@@ -6,7 +6,7 @@ import { imageSrc } from '../../data/images';
 import { filesToDataUrls } from '../../lib/imageUpload';
 import { getCategory, getUser, offerCreditEstimate } from '../../services/catalogService';
 import { categoryPath, presentationPath, userBase } from '../../utils/routes';
-import { formatPrice, locationLabel, viewersOf } from '../../utils/format';
+import { formatPrice, locationLabel } from '../../utils/format';
 import { useAppData } from '../../store/appData';
 
 const TRUST_ITEMS: Array<{ icon: IconName; title: string; copy: string }> = [
@@ -14,6 +14,12 @@ const TRUST_ITEMS: Array<{ icon: IconName; title: string; copy: string }> = [
   { icon: 'Camera', title: 'Kanıtlı sunum', copy: 'Fotoğraf, durum notu ve varsa video ile ürün doğrulanır.' },
   { icon: 'Truck', title: 'Kargo takibi', copy: 'Onay sonrası teslimat ve takip bilgisi sistemde tutulur.' },
 ];
+
+const CONDITIONS = ['Sıfır (yeni)', 'Etiketli', 'Az kullanılmış', 'İkinci el · iyi durumda', 'İkinci el'];
+const MIN_PHOTOS = 3;
+const MAX_PHOTOS = 10;
+const NOTE_MIN = 10;
+const NOTE_MAX = 250;
 
 export function DemandDetailPage() {
   const { username = '@ahmetsafak', demandSlug = '' } = useParams();
@@ -31,7 +37,7 @@ export function DemandDetailPage() {
     return (
       <div className="empty-state">
         <Icon name="Search" size={28} />
-        <h1>İlan bulunamadı</h1>
+        <h1>Talep bulunamadı</h1>
         <p>Bu talep kaldırılmış olabilir ya da URL eksik yazılmıştır.</p>
         <Link className="button primary" to={userBase(routeUser.username)}>
           Taleplere Dön
@@ -48,15 +54,19 @@ export function DemandDetailPage() {
   const isOwner = routeUser.id === demand.ownerId;
   const visiblePresentations = isOwner ? presentations : presentations.filter((p) => p.sellerId === routeUser.id);
   const myPresentation = presentations.find((p) => p.sellerId === routeUser.id);
+  const noteLen = presentNote.trim().length;
+  const presentValid =
+    presentPhotos.length >= MIN_PHOTOS && noteLen >= NOTE_MIN && noteLen <= NOTE_MAX && !!presentCondition;
+
   async function onPickPresentFiles(event: ChangeEvent<HTMLInputElement>) {
     const files = event.target.files;
     if (!files?.length) return;
     const urls = await filesToDataUrls(files, { maxDim: 1400 });
-    setPresentPhotos((prev) => [...prev, ...urls].slice(0, 8));
+    setPresentPhotos((prev) => [...prev, ...urls].slice(0, MAX_PHOTOS));
     event.target.value = '';
   }
   function submitPresentation() {
-    if (!demand || !presentPhotos.length) return;
+    if (!demand || !presentValid) return;
     createPresentation({
       demandId: demand.id,
       sellerId: routeUser.id,
@@ -170,9 +180,6 @@ export function DemandDetailPage() {
               </span>
               <span>
                 <Icon name="Clock" size={13} /> {demand.createdAtLabel}
-              </span>
-              <span>
-                <Icon name="Eye" size={13} /> {viewersOf(demand.id)} izliyor
               </span>
               <span>
                 <Icon name="Inbox" size={13} /> {presentations.length} sunum
@@ -310,14 +317,19 @@ export function DemandDetailPage() {
             <button type="button" className="button ghost" onClick={() => setPresenting(false)}>
               Vazgeç
             </button>
-            <button type="button" className="button primary" disabled={!presentPhotos.length} onClick={submitPresentation}>
+            <button type="button" className="button primary" disabled={!presentValid} onClick={submitPresentation}>
               <Icon name="Send" size={16} /> Sunumu Gönder
             </button>
           </>
         }
       >
         <div className="present-form">
-          <div className="field-label">Ürün görselleri · {presentPhotos.length}/8</div>
+          <div className="field-label">
+            Ürün görselleri ·{' '}
+            <span className={`muted-count${presentPhotos.length < MIN_PHOTOS ? ' warn' : ''}`}>
+              {presentPhotos.length}/{MAX_PHOTOS} · en az {MIN_PHOTOS}
+            </span>
+          </div>
           <div className="ref-grid">
             {presentPhotos.map((src, index) => (
               <div key={index} className="ref-thumb">
@@ -333,7 +345,7 @@ export function DemandDetailPage() {
                 </button>
               </div>
             ))}
-            {presentPhotos.length < 8 ? (
+            {presentPhotos.length < MAX_PHOTOS ? (
               <button type="button" className="ref-add" onClick={() => presentFileRef.current?.click()}>
                 <Icon name="Plus" size={18} />
                 <span>Foto ekle</span>
@@ -342,16 +354,24 @@ export function DemandDetailPage() {
             <input ref={presentFileRef} type="file" accept="image/*" multiple hidden onChange={onPickPresentFiles} />
           </div>
           <label className="present-field">
-            <span>Durum</span>
-            <input value={presentCondition} onChange={(event) => setPresentCondition(event.target.value)} placeholder="İkinci el · iyi durumda" />
+            <span>Ürün durumu</span>
+            <select value={presentCondition} onChange={(event) => setPresentCondition(event.target.value)}>
+              {CONDITIONS.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
           </label>
           <label className="present-field">
-            <span>Açıklama / not</span>
+            <span>
+              Açıklama / not ·{' '}
+              <span className={`muted-count${noteLen > 0 && noteLen < NOTE_MIN ? ' warn' : ''}`}>{noteLen}/{NOTE_MAX}</span>
+            </span>
             <textarea
               value={presentNote}
-              onChange={(event) => setPresentNote(event.target.value)}
+              onChange={(event) => setPresentNote(event.target.value.slice(0, NOTE_MAX))}
               rows={3}
-              placeholder="Ürünün durumu, orijinallik, teslimat…"
+              maxLength={NOTE_MAX}
+              placeholder={`Ürünün durumu, orijinallik, teslimat… (en az ${NOTE_MIN} karakter)`}
             />
           </label>
         </div>
