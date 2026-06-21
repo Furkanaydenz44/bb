@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { NavLink, Navigate, Outlet, useNavigate, useParams } from 'react-router-dom';
 import { Avatar } from '../../components/Avatar';
 import { Icon, type IconName } from '../../components/Icon';
@@ -23,6 +23,7 @@ export function AppLayout() {
   const [query, setQuery] = useState('');
   const [catOpen, setCatOpen] = useState(false);
   const [activeCat, setActiveCat] = useState(categories[0].id);
+  const catTriggerRef = useRef<HTMLButtonElement>(null);
   const session = getCurrentUser();
   const { creditsOf, unreadCount, getUserNotifications, markNotificationsRead } = useAppData();
 
@@ -161,19 +162,31 @@ export function AppLayout() {
             className="cat-mega-wrap"
             onMouseEnter={() => setCatOpen(true)}
             onMouseLeave={() => setCatOpen(false)}
+            onKeyDown={(event) => {
+              if (event.key === 'Escape' && catOpen) {
+                setCatOpen(false);
+                catTriggerRef.current?.focus();
+              }
+            }}
+            onBlur={(event) => {
+              if (!event.currentTarget.contains(event.relatedTarget as Node)) setCatOpen(false);
+            }}
           >
             <button
+              ref={catTriggerRef}
               type="button"
               className={`topnav-link cat-trigger${catOpen ? ' active' : ''}`}
               onClick={() => setCatOpen((open) => !open)}
               aria-expanded={catOpen}
+              aria-haspopup="true"
+              aria-controls="cat-mega"
             >
               <Icon name="Menu" size={17} />
               Kategoriler
             </button>
 
             {catOpen && (
-              <div className="cat-mega" role="menu">
+              <div className="cat-mega" id="cat-mega" aria-label="Kategoriler">
                 <div className="cat-rail">
                   {categories.map((c) => (
                     <NavLink
