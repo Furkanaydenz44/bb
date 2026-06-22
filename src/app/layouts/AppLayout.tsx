@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { NavLink, Navigate, Outlet, useNavigate, useParams } from 'react-router-dom';
 import { Avatar } from '../../components/Avatar';
 import { Icon, type IconName } from '../../components/Icon';
@@ -21,7 +21,13 @@ export function AppLayout() {
   const [query, setQuery] = useState('');
   const [catOpen, setCatOpen] = useState(false);
   const [activeCat, setActiveCat] = useState(categories[0].id);
+  const [isDark, setIsDark] = useState(() => localStorage.getItem('theme') === 'dark');
   const catTriggerRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  }, [isDark]);
   const session = getCurrentUser();
   const { creditsOf, unreadCount, getUserNotifications, markNotificationsRead } = useAppData();
 
@@ -110,6 +116,15 @@ export function AppLayout() {
                 </>
               )}
             </div>
+
+            <button
+              type="button"
+              className="icon-btn"
+              onClick={() => setIsDark((d) => !d)}
+              aria-label={isDark ? 'Açık moda geç' : 'Koyu moda geç'}
+            >
+              <Icon name={isDark ? 'Sun' : 'Moon'} size={19} />
+            </button>
 
             <NavLink className="icon-btn" to={`${base}/mesajlar`} aria-label="Mesajlar">
               <Icon name="MessageCircle" size={19} />
