@@ -2,9 +2,21 @@ import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { Icon, type IconName } from '../../components/Icon';
 import { PageHeader } from '../../components/PageHeader';
 import { categories } from '../../data/categories';
+import { imageSrc, imageIds } from '../../data/images';
 import { getDemands, getUser } from '../../services/catalogService';
 import { categoryPath, demandPath, userBase } from '../../utils/routes';
 import { formatPrice, locationLabel } from '../../utils/format';
+import { DemandCard } from './DemandCard';
+
+const categoryImages: Record<string, string> = {
+  foto: imageIds.camera,
+  muzik: imageIds.guitar,
+  sneaker: imageIds.sneaker,
+  saat: imageIds.watch2,
+  koleksiyon: imageIds.vinyl,
+  teknoloji: imageIds.drone,
+  oto: imageIds.car,
+};
 
 export function ExplorePage() {
   const { username = '@ahmetsafak' } = useParams();
@@ -24,6 +36,8 @@ export function ExplorePage() {
       )
     : [];
 
+  const recentDemands = demands.slice(0, 4);
+
   return (
     <div className="page-stack">
       <PageHeader
@@ -41,7 +55,7 @@ export function ExplorePage() {
         <>
           <section className="section-heading">
             <div>
-              <h2>“{q}” için {results.length} sonuç</h2>
+              <h2>"{q}" için {results.length} sonuç</h2>
               <p>Talep başlığı, açıklama, şehir ve kategoride eşleşen talepler.</p>
             </div>
             <Link className="button ghost" to={`${base}/kesfet`}>
@@ -71,26 +85,53 @@ export function ExplorePage() {
         </>
       ) : (
         <>
+          {/* Kategoriler */}
           <div className="section-heading">
             <div>
               <h2>Kategoriler</h2>
               <p>Bir kategoriye gir, o kategorideki açık alıcı taleplerini gör.</p>
             </div>
           </div>
-          <section className="category-board">
+          <section className="category-visual-grid">
             {categories.map((category) => {
               const count = demands.filter((demand) => demand.categoryId === category.id).length;
+              const img = categoryImages[category.id];
               return (
-                <Link key={category.id} className="category-tile" to={categoryPath(activeUser.username, category.id)}>
-                  <Icon name={category.icon as IconName} size={22} />
-                  <strong>{category.name}</strong>
-                  <span>{count} aktif talep</span>
-                  <Icon name="ChevronRight" size={18} />
+                <Link
+                  key={category.id}
+                  className="category-visual-card"
+                  to={categoryPath(activeUser.username, category.id)}
+                >
+                  <img src={imageSrc(img, 600)} alt={category.name} />
+                  <div className="category-visual-overlay">
+                    <div className="category-visual-icon">
+                      <Icon name={category.icon as IconName} size={20} />
+                    </div>
+                    <div className="category-visual-info">
+                      <strong>{category.name}</strong>
+                      <span>{count} aktif talep</span>
+                    </div>
+                    <Icon name="ChevronRight" size={16} className="category-visual-arrow" />
+                  </div>
                 </Link>
               );
             })}
           </section>
 
+          {/* Son Talepler */}
+          <div className="section-heading">
+            <div>
+              <h2>Son Talepler</h2>
+              <p>Platformdaki en yeni alıcı talepleri — sunum yapmaya başla.</p>
+            </div>
+          </div>
+          <section className="demand-grid">
+            {recentDemands.map((demand) => (
+              <DemandCard key={demand.id} demand={demand} />
+            ))}
+          </section>
+
+          {/* Araçlar */}
           <div className="section-heading">
             <div>
               <h2>Araçlar</h2>
