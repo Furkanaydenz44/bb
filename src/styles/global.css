@@ -3414,12 +3414,96 @@ img {
   background: transparent;
 }
 
+.acct-trigger-avatar {
+  padding: 3px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  transition: border-color 0.15s ease;
+}
+
+.acct-trigger-avatar:hover {
+  border-color: var(--purple);
+  background: transparent;
+}
+
 .acct-trigger:hover {
   background: var(--surface-soft);
 }
 
 .acct-chev {
   color: var(--muted);
+}
+
+.acct-profile-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 8px 8px;
+}
+
+.acct-av-lg {
+  width: 42px !important;
+  height: 42px !important;
+  font-size: 16px !important;
+  flex: 0 0 auto;
+}
+
+.acct-profile-info {
+  min-width: 0;
+}
+
+.acct-profile-info b {
+  display: block;
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.acct-profile-info small {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.acct-credit-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--surface-green);
+  color: #5c7a00;
+  font-size: 13px;
+  font-weight: 800;
+  margin: 2px 0 6px;
+  border: 1px solid #d8eba6;
+}
+
+.acct-credit-row svg:last-child {
+  margin-left: auto;
+  color: #7baf20;
+}
+
+.acct-menu-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 10px;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 700;
+  transition: background 0.12s ease;
+}
+
+.acct-menu-link:hover {
+  background: var(--surface-soft);
+}
+
+.acct-divider {
+  height: 1px;
+  background: var(--line);
+  margin: 6px 0;
 }
 
 .acct-backdrop {

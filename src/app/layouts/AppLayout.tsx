@@ -10,8 +10,6 @@ import { categoryPath, userBase } from '../../utils/routes';
 const primaryNav: Array<{ label: string; icon: IconName; path: string }> = [
   { label: 'Talepler', icon: 'Home', path: '' },
   { label: 'Keşfet', icon: 'Search', path: 'kesfet' },
-  { label: 'Talep Aç', icon: 'Plus', path: 'talep-ac' },
-  { label: 'Mesajlar', icon: 'MessageCircle', path: 'mesajlar' },
   { label: 'Profil', icon: 'User', path: 'profil' },
 ];
 
@@ -86,11 +84,6 @@ export function AppLayout() {
           </form>
 
           <div className="topactions">
-            <NavLink className="credit-pill" to={`${base}/kredi`}>
-              <Icon name="WalletCards" size={16} />
-              {credits} kredi
-            </NavLink>
-
             <div className="bell-wrap">
               <button type="button" className="icon-btn" onClick={toggleNotif} aria-label="Bildirimler">
                 <Icon name="Bell" size={19} />
@@ -121,17 +114,41 @@ export function AppLayout() {
               )}
             </div>
 
+            <NavLink className="icon-btn" to={`${base}/mesajlar`} aria-label="Mesajlar">
+              <Icon name="MessageCircle" size={19} />
+            </NavLink>
+
+            <NavLink className="button primary" to={`${base}/talep-ac`}>
+              <Icon name="Plus" size={17} />
+              Talep Aç
+            </NavLink>
+
             <div className="acct">
-              <button type="button" className="acct-trigger" onClick={() => setMenuOpen((open) => !open)}>
+              <button type="button" className="acct-trigger acct-trigger-avatar" onClick={() => setMenuOpen((open) => !open)}>
                 <Avatar label={activeUser.avatar} />
-                <span className="user-name">{activeUser.name}</span>
-                <Icon name="ChevronRight" size={15} className="acct-chev" />
               </button>
               {menuOpen && (
                 <>
                   <button type="button" className="acct-backdrop" aria-label="Kapat" onClick={() => setMenuOpen(false)} />
                   <div className="acct-menu">
-                    <div className="acct-menu-label">Demo hesabı değiştir</div>
+                    <div className="acct-profile-head">
+                      <span className="acct-av acct-av-lg">{activeUser.avatar}</span>
+                      <div className="acct-profile-info">
+                        <b>{activeUser.name}</b>
+                        <small>@{activeUser.username}</small>
+                      </div>
+                    </div>
+                    <NavLink className="acct-credit-row" to={`${base}/kredi`} onClick={() => setMenuOpen(false)}>
+                      <Icon name="WalletCards" size={15} />
+                      <span>{credits} kredi</span>
+                      <Icon name="ChevronRight" size={14} />
+                    </NavLink>
+                    <NavLink className="acct-menu-link" to={`${base}/profil`} onClick={() => setMenuOpen(false)}>
+                      <Icon name="User" size={15} />
+                      <span>Profil</span>
+                    </NavLink>
+                    <div className="acct-divider" />
+                    <div className="acct-menu-label">Hesap değiştir</div>
                     {accounts.map((user) => (
                       <button
                         key={user.id}

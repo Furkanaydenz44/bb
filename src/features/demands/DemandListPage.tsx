@@ -1,10 +1,9 @@
-import { Link, NavLink, useParams } from 'react-router-dom';
-import { Icon, type IconName } from '../../components/Icon';
+import { Link, useParams } from 'react-router-dom';
+import { Icon } from '../../components/Icon';
 import { PageHeader } from '../../components/PageHeader';
 import { StatusBadge } from '../../components/StatusBadge';
-import { categories } from '../../data/categories';
 import { getCategory, getUser } from '../../services/catalogService';
-import { categoryPath, userBase } from '../../utils/routes';
+import { userBase } from '../../utils/routes';
 import { DemandCard } from './DemandCard';
 import { useAppData } from '../../store/appData';
 
@@ -15,7 +14,7 @@ export function DemandListPage() {
   const activeCategory = getCategory(categoryId);
   const base = userBase(activeUser.username);
   const demands = getDemands(categoryId);
-  const featured = getDemands()
+  const featured = getDemands(categoryId)
     .filter((demand) => demand.featured || demand.price >= 50000)
     .slice(0, 5);
 
@@ -37,19 +36,6 @@ export function DemandListPage() {
           </>
         }
       />
-
-      <nav className="category-nav" aria-label="Kategoriler">
-        <NavLink to={base} end className="category-chip">
-          <Icon name="LayoutDashboard" size={16} />
-          Tümü
-        </NavLink>
-        {categories.map((category) => (
-          <NavLink key={category.id} to={categoryPath(activeUser.username, category.id)} className="category-chip">
-            <Icon name={category.icon as IconName} size={16} />
-            {category.shortName}
-          </NavLink>
-        ))}
-      </nav>
 
       <div className="section-heading">
         <div>
