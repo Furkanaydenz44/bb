@@ -1,7 +1,6 @@
 import { Link, useParams } from 'react-router-dom';
 import { Icon } from '../../components/Icon';
 import { PageHeader } from '../../components/PageHeader';
-import { StatusBadge } from '../../components/StatusBadge';
 import { getCategory, getUser } from '../../services/catalogService';
 import { userBase } from '../../utils/routes';
 import { DemandCard } from './DemandCard';
@@ -24,16 +23,10 @@ export function DemandListPage() {
         title={activeCategory ? activeCategory.name : 'Talep Pazarı'}
         description={`${activeUser.name} bağlamında açık alıcı taleplerini, kategori fırsatlarını ve sunum akışlarını yönet.`}
         actions={
-          <>
-            <Link className="button ghost" to={`${base}/araclar/teklif-kredisi`}>
-              <Icon name="Calculator" size={17} />
-              Kredi Hesapla
-            </Link>
-            <Link className="button primary" to={`${base}/talep-ac`}>
-              <Icon name="Plus" size={17} />
-              Talep Aç
-            </Link>
-          </>
+          <Link className="button ghost" to={`${base}/araclar/teklif-kredisi`}>
+            <Icon name="Calculator" size={17} />
+            Kredi Hesapla
+          </Link>
         }
       />
 
@@ -42,7 +35,6 @@ export function DemandListPage() {
           <h2>Şimdi ilgi gören</h2>
           <p>Yüksek bütçeli ve hızlı aksiyon bekleyen talepler.</p>
         </div>
-        <StatusBadge tone="green">canlı</StatusBadge>
       </div>
       <div className="demand-grid compact">
         {featured.map((demand) => (

@@ -293,6 +293,21 @@ img {
 }
 .topnav-link.cta.active { color: var(--green-ink); border-bottom-color: var(--green-dark); }
 
+.topnav-talepler {
+  background: var(--green);
+  color: var(--green-ink);
+  border-radius: 10px;
+  margin-bottom: 0;
+  border-bottom: 2px solid transparent;
+  padding: 8px 14px;
+}
+.topnav-talepler:hover { color: var(--green-ink); background: #bae62c; }
+.topnav-talepler.active {
+  color: var(--green-ink);
+  border-bottom-color: transparent;
+  background: var(--green);
+}
+
 /* ===== Kategoriler mega-menü ===== */
 .cat-mega-wrap { position: relative; }
 .cat-trigger {

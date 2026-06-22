@@ -10,7 +10,6 @@ import { categoryPath, userBase } from '../../utils/routes';
 const primaryNav: Array<{ label: string; icon: IconName; path: string }> = [
   { label: 'Talepler', icon: 'Home', path: '' },
   { label: 'Keşfet', icon: 'Search', path: 'kesfet' },
-  { label: 'Profil', icon: 'User', path: 'profil' },
 ];
 
 export function AppLayout() {
@@ -252,7 +251,9 @@ export function AppLayout() {
               key={item.path || 'home'}
               to={item.path ? `${base}/${item.path}` : base}
               end={item.path === ''}
-              className={`topnav-link${item.path === 'talep-ac' ? ' cta' : ''}`}
+              className={({ isActive }) =>
+                `topnav-link${item.path === '' ? ' topnav-talepler' : ''}${isActive ? ' active' : ''}`
+              }
             >
               <Icon name={item.icon} size={17} />
               {item.label}
