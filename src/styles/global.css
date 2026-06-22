@@ -293,6 +293,17 @@ img {
 }
 .topnav-link.cta.active { color: var(--green-ink); border-bottom-color: var(--green-dark); }
 
+.topnav-cta {
+  background: var(--purple);
+  color: #fff;
+  border-radius: 10px;
+  margin-bottom: 0;
+  border-bottom: 2px solid transparent;
+  padding: 8px 14px;
+}
+.topnav-cta:hover { color: #fff; background: var(--purple-dark); }
+.topnav-cta.active { color: #fff; border-bottom-color: transparent; background: var(--purple-dark); }
+
 .topnav-talepler {
   background: var(--green);
   color: var(--green-ink);

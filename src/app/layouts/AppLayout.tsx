@@ -248,7 +248,7 @@ export function AppLayout() {
               to={item.path ? `${base}/${item.path}` : base}
               end={item.path === ''}
               className={({ isActive }) =>
-                `topnav-link${item.path === '' ? ' topnav-talepler' : ''}${isActive ? ' active' : ''}`
+                `topnav-link${item.path === '' ? ' topnav-talepler' : ''}${item.path === 'talep-ac' ? ' topnav-cta' : ''}${isActive ? ' active' : ''}`
               }
             >
               <Icon name={item.icon} size={17} />
