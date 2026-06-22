@@ -139,7 +139,7 @@ img {
 }
 
 .wordmark-logo {
-  height: 36px;
+  height: 43px;
   width: auto;
   display: block;
 }
@@ -149,7 +149,8 @@ img {
   align-items: center;
   gap: 10px;
   height: 48px;
-  padding: 0 8px 0 16px;
+  padding: 0 8px 0 14px;
+  max-width: 520px;
   border-radius: 14px;
   background: var(--surface-soft);
   border: 1.5px solid transparent;
