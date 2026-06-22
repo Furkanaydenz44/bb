@@ -66,10 +66,7 @@ export function AppLayout() {
       <header className="topbar2">
         <div className="topbar2-main">
           <NavLink className="wordmark2" to={base} aria-label="Bulbana ana sayfa">
-            <span className="brand-mark small">
-              <Icon name="Search" size={18} />
-            </span>
-            Bulbana
+            <img src="/bulbana-logo.png" alt="Bulbana" className="wordmark-logo" />
           </NavLink>
 
           <form className="topsearch" onSubmit={onSearch} role="search">

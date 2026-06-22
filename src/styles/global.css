@@ -138,6 +138,12 @@ img {
   flex: 0 0 auto;
 }
 
+.wordmark-logo {
+  height: 36px;
+  width: auto;
+  display: block;
+}
+
 .topsearch {
   display: flex;
   align-items: center;
