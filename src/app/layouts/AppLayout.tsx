@@ -10,6 +10,7 @@ import { categoryPath, userBase } from '../../utils/routes';
 const primaryNav: Array<{ label: string; icon: IconName; path: string }> = [
   { label: 'Talepler', icon: 'Home', path: '' },
   { label: 'Keşfet', icon: 'Search', path: 'kesfet' },
+  { label: 'Talep Aç', icon: 'Plus', path: 'talep-ac' },
 ];
 
 export function AppLayout() {
@@ -115,11 +116,6 @@ export function AppLayout() {
 
             <NavLink className="icon-btn" to={`${base}/mesajlar`} aria-label="Mesajlar">
               <Icon name="MessageCircle" size={19} />
-            </NavLink>
-
-            <NavLink className="button primary" to={`${base}/talep-ac`}>
-              <Icon name="Plus" size={17} />
-              Talep Aç
             </NavLink>
 
             <div className="acct">
