@@ -2060,10 +2060,10 @@ img {
 
 .field-label {
   margin: 18px 0 9px;
-  color: var(--purple);
-  font-size: 12px;
-  font-weight: 850;
-  letter-spacing: 0.04em;
+  color: #111111;
+  font-size: 14.5px;
+  font-weight: 900;
+  letter-spacing: 0.01em;
   text-transform: uppercase;
 }
 
