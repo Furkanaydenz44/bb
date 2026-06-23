@@ -21,7 +21,6 @@ export function DemandCard({ demand }: DemandCardProps) {
         title={demand.title}
         description={demand.description}
         price={formatPrice(demand.price)}
-        timeLabel={demand.createdAtLabel}
         ownerName={shortName(owner.name)}
       />
     </Link>

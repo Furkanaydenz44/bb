@@ -294,7 +294,6 @@ export function CreateDemandPage() {
               title={title.trim() || 'Talep başlığın burada görünecek'}
               description={description.trim() || 'Açıklaman burada kısaltılarak görünecek.'}
               price={price ? formatPrice(price) : 'Fiyat belirt'}
-              timeLabel="az önce"
               ownerName={shortName(activeUser.name)}
             />
           </div>

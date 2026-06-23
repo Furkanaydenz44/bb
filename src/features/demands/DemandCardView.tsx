@@ -6,7 +6,6 @@ export interface DemandCardViewProps {
   title: string;
   description: string;
   price: string;
-  timeLabel: string;
   ownerName: string;
 }
 
@@ -15,7 +14,6 @@ export function DemandCardView({
   title,
   description,
   price,
-  timeLabel,
 }: DemandCardViewProps) {
   const shortDesc = description.length > 72 ? description.slice(0, 72).trimEnd() + '…' : description;
 
@@ -23,9 +21,6 @@ export function DemandCardView({
     <>
       <div className="demand-image">
         <img src={imageSrc(coverImage, 620)} alt="" />
-        <span className="floating-meta">
-          <Icon name="Clock" size={12} /> {timeLabel}
-        </span>
       </div>
       <div className="demand-card-body">
         <div className="demand-card-title">{title}</div>
