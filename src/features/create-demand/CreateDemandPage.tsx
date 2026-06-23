@@ -243,7 +243,7 @@ export function CreateDemandPage() {
             </div>
 
             <div className="cp-col">
-              <div className="field-label">Sabit fiyat</div>
+              <div className="field-label">Fiyat</div>
               <div className="card-block">
                 <div className="field-input">
                   <span className="fic-tl">₺</span>
@@ -251,7 +251,7 @@ export function CreateDemandPage() {
                     value={price || ''}
                     onChange={(event) => setPrice(Number(event.target.value.replace(/[^0-9]/g, '')) || 0)}
                     inputMode="numeric"
-                    placeholder="Alım fiyatı"
+                    placeholder="Hedef fiyat giriniz"
                   />
                 </div>
               </div>
