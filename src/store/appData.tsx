@@ -76,6 +76,8 @@ export interface CreateDemandInput {
   price: number;
   city: string;
   district?: string;
+  condition?: string;
+  hasDefect?: string;
   referenceImages?: string[];
 }
 
@@ -243,6 +245,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         price: input.price || 0,
         city: input.city || 'İstanbul',
         district: input.district?.trim() || undefined,
+        condition: input.condition || undefined,
+        hasDefect: input.hasDefect || undefined,
         badge: 'Aktif Alıcı',
         createdAtLabel: 'az önce',
         coverImage: input.referenceImages?.[0] || CATEGORY_COVER[input.categoryId] || imageIds.camera,

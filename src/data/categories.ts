@@ -7,7 +7,7 @@ export const categories: Category[] = [
   { id: 'saat', name: 'Saat & Mücevher', shortName: 'Saat', icon: 'Watch' },
   { id: 'koleksiyon', name: 'Koleksiyon & Plak', shortName: 'Koleksiyon', icon: 'Disc3' },
   { id: 'teknoloji', name: 'Teknoloji & Drone', shortName: 'Teknoloji', icon: 'Cpu' },
-  { id: 'oto', name: 'Klasik Oto', shortName: 'Klasik', icon: 'Car' },
+  { id: 'oto', name: 'Yedek Parça & Aksesuar', shortName: 'Parça', icon: 'Settings' },
 ];
 
 export interface CategoryGroup {

@@ -56,6 +56,10 @@ export function CreateDemandPage() {
   const [citySearch, setCitySearch] = useState('');
   const [districtOpen, setDistrictOpen] = useState(false);
   const [districtSearch, setDistrictSearch] = useState('');
+  const [condition, setCondition] = useState('');
+  const [conditionOpen, setConditionOpen] = useState(false);
+  const [hasDefect, setHasDefect] = useState('');
+  const [defectOpen, setDefectOpen] = useState(false);
   const [photos, setPhotos] = useState<string[]>([]);
   const [videos, setVideos] = useState<string[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -80,7 +84,7 @@ export function CreateDemandPage() {
   }
 
   function publish() {
-    const demand = createDemand({ ownerId: activeUser.id, categoryId, title, description, price, city, district, referenceImages: photos });
+    const demand = createDemand({ ownerId: activeUser.id, categoryId, title, description, price, city, district, condition, hasDefect, referenceImages: photos });
     navigate(demandPath(activeUser.username, demand));
   }
 
@@ -108,9 +112,11 @@ export function CreateDemandPage() {
         }
       />
 
-      <div className="create-banner">
-        <b>Ücretsiz!</b> — Talebini aç — <span className="create-banner-lime">Satıcılar sana sunum yapsın</span> — Son kararı sen ver.
-      </div>
+      <img
+        src="/create-banner.png"
+        alt="Ücretsiz! — Talebini aç — Satıcılar sana sunum yapsın — Son kararı sen ver."
+        className="create-banner-img"
+      />
 
       <div className="create-cols">
         <div className="create-form">
@@ -142,6 +148,68 @@ export function CreateDemandPage() {
                 rows={3}
                 placeholder="Durum, orijinallik, kusur, teslimat tercihi…"
               />
+            </div>
+          </div>
+
+          <div className="city-price">
+            <div className="cp-col">
+              <div className="field-label">Ürün Durumu</div>
+              <div className={`card-block city-card${conditionOpen ? ' open' : ''}`}>
+                <button type="button" className="city-trigger" onClick={() => setConditionOpen((o) => !o)}>
+                  <Icon name="PackageCheck" size={16} />
+                  <span className={`city-label${condition ? '' : ' ph'}`}>{condition || 'Durum seç'}</span>
+                  <span className="city-chev"><Icon name="ChevronRight" size={16} /></span>
+                </button>
+                {conditionOpen && (
+                  <>
+                    <button type="button" className="city-backdrop" aria-label="Kapat" onClick={() => setConditionOpen(false)} />
+                    <div className="city-panel">
+                      <div className="city-list">
+                        {['Yeni', 'Etiketli', 'Az kullanılmış'].map((opt) => (
+                          <button
+                            key={opt}
+                            type="button"
+                            className={`city-opt${condition === opt ? ' sel' : ''}`}
+                            onClick={() => { setCondition(opt); setConditionOpen(false); }}
+                          >
+                            {opt}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+
+            <div className="cp-col">
+              <div className="field-label">Ürün Defosu</div>
+              <div className={`card-block city-card${defectOpen ? ' open' : ''}`}>
+                <button type="button" className="city-trigger" onClick={() => setDefectOpen((o) => !o)}>
+                  <Icon name="Eye" size={16} />
+                  <span className={`city-label${hasDefect ? '' : ' ph'}`}>{hasDefect || 'Seç'}</span>
+                  <span className="city-chev"><Icon name="ChevronRight" size={16} /></span>
+                </button>
+                {defectOpen && (
+                  <>
+                    <button type="button" className="city-backdrop" aria-label="Kapat" onClick={() => setDefectOpen(false)} />
+                    <div className="city-panel">
+                      <div className="city-list">
+                        {['Evet', 'Hayır'].map((opt) => (
+                          <button
+                            key={opt}
+                            type="button"
+                            className={`city-opt${hasDefect === opt ? ' sel' : ''}`}
+                            onClick={() => { setHasDefect(opt); setDefectOpen(false); }}
+                          >
+                            {opt}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
           </div>
 

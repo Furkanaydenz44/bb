@@ -144,6 +144,8 @@ export interface Demand {
   price: number;
   city: string;
   district?: string;
+  condition?: string;
+  hasDefect?: string;
   badge: string;
   createdAtLabel: string;
   coverImage: string;

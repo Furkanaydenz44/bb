@@ -128,9 +128,6 @@ export function DemandDetailPage() {
             )}
           </div>
           <div className="detail-media-foot">
-            <span>
-              <Icon name="Image" size={14} /> {images.length} referans görsel
-            </span>
             <div className="detail-thumbs">
               {thumbs.map((imageId, index) => (
                 <button
@@ -145,6 +142,14 @@ export function DemandDetailPage() {
               ))}
             </div>
           </div>
+          <section className="detail-assurance-card">
+            <h3>Bulbana güven akışı</h3>
+            <div className="detail-assurance-list">
+              <span><i>1</i> Sunum ücretsiz gönderilir</span>
+              <span><i>2</i> Alıcı beğenirse resmi teklif ister</span>
+              <span><i>3</i> Anlaşma sonrası kargo takibi açılır</span>
+            </div>
+          </section>
         </section>
 
         <main className="detail-main">
@@ -159,13 +164,10 @@ export function DemandDetailPage() {
             </div>
             <h1 className="detail-title">{demand.title}</h1>
             <p className="detail-desc">{demand.description}</p>
-
             <div className="detail-trust-band">
               {TRUST_ITEMS.map((item) => (
                 <div key={item.title} className="detail-trust-item">
-                  <span className="detail-trust-icon">
-                    <Icon name={item.icon} size={17} />
-                  </span>
+                  <Icon name={item.icon} size={22} className="detail-trust-icon-bare" />
                   <div>
                     <b>{item.title}</b>
                     <span>{item.copy}</span>
@@ -173,7 +175,6 @@ export function DemandDetailPage() {
                 </div>
               ))}
             </div>
-
             <div className="detail-meta-row">
               <span>
                 <Icon name="MapPin" size={13} /> {locationLabel(demand.city, demand.district)}
@@ -212,20 +213,6 @@ export function DemandDetailPage() {
             </div>
           </section>
 
-          <section className="detail-assurance-card">
-            <h3>Bulbana güven akışı</h3>
-            <div className="detail-assurance-list">
-              <span>
-                <i>1</i> Sunum ücretsiz gönderilir
-              </span>
-              <span>
-                <i>2</i> Alıcı beğenirse resmi teklif ister
-              </span>
-              <span>
-                <i>3</i> Anlaşma sonrası kargo takibi açılır
-              </span>
-            </div>
-          </section>
         </main>
 
         <aside className="detail-aside">

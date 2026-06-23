@@ -7,9 +7,10 @@ import { DemandCardView } from './DemandCardView';
 
 interface DemandCardProps {
   demand: Demand;
+  subcategoryLabel?: string;
 }
 
-export function DemandCard({ demand }: DemandCardProps) {
+export function DemandCard({ demand, subcategoryLabel }: DemandCardProps) {
   const { username = '@ahmetsafak' } = useParams();
   const activeUser = getUser(username);
   const owner = getUser(demand.ownerId);
@@ -22,6 +23,7 @@ export function DemandCard({ demand }: DemandCardProps) {
         description={demand.description}
         price={formatPrice(demand.price)}
         ownerName={shortName(owner.name)}
+        subcategoryLabel={subcategoryLabel}
       />
     </Link>
   );
