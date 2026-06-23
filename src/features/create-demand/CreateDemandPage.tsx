@@ -57,7 +57,9 @@ export function CreateDemandPage() {
   const [districtOpen, setDistrictOpen] = useState(false);
   const [districtSearch, setDistrictSearch] = useState('');
   const [photos, setPhotos] = useState<string[]>([]);
+  const [videos, setVideos] = useState<string[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const { createDemand } = useAppData();
 
@@ -66,6 +68,14 @@ export function CreateDemandPage() {
     if (!files?.length) return;
     const urls = await filesToDataUrls(files, { maxDim: 1200 });
     setPhotos((prev) => [...prev, ...urls].slice(0, 10));
+    event.target.value = '';
+  }
+
+  function onPickVideos(event: ChangeEvent<HTMLInputElement>) {
+    const files = event.target.files;
+    if (!files?.length) return;
+    const urls = Array.from(files).map((f) => URL.createObjectURL(f));
+    setVideos((prev) => [...prev, ...urls].slice(0, 5));
     event.target.value = '';
   }
 
@@ -99,7 +109,7 @@ export function CreateDemandPage() {
       />
 
       <div className="create-banner">
-        <b>Ücretsiz · 2 dakika.</b> Talebini aç, satıcılar sana ürün sunsun — kararı sen ver.
+        <b>Ücretsiz!</b> — Talebini aç — Satıcılar sana sunum yapsın — Son kararı sen ver.
       </div>
 
       <div className="create-cols">
@@ -256,11 +266,11 @@ export function CreateDemandPage() {
           </div>
 
           <div className="field-label">
-            Referans fotoğraf · <span className="muted-count">{photos.length}/10</span>
+            Fotoğraf ve Video ekle · <span className="muted-count">{photos.length}/10 fotoğraf · {videos.length}/5 video</span>
           </div>
           <div className="card-block ref-grid">
             {photos.map((src, index) => (
-              <div key={index} className="ref-thumb">
+              <div key={`photo-${index}`} className="ref-thumb">
                 <img src={imageSrc(src, 220)} alt="" />
                 {index === 0 ? <span className="ref-cap">Kapak</span> : null}
                 <button
@@ -275,14 +285,36 @@ export function CreateDemandPage() {
             ))}
             {photos.length < 10 ? (
               <button type="button" className="ref-add" onClick={() => fileRef.current?.click()}>
-                <Icon name="Plus" size={18} />
+                <Icon name="Image" size={18} />
                 <span>Foto ekle</span>
               </button>
             ) : null}
             <input ref={fileRef} type="file" accept="image/*" multiple hidden onChange={onPickFiles} />
+
+            {videos.map((src, index) => (
+              <div key={`video-${index}`} className="ref-thumb ref-thumb-video">
+                <video src={src} muted playsInline className="ref-video-preview" />
+                <span className="ref-cap ref-cap-video">Video</span>
+                <button
+                  type="button"
+                  className="ref-x"
+                  aria-label="Kaldır"
+                  onClick={() => setVideos((prev) => prev.filter((_, i) => i !== index))}
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+            {videos.length < 5 ? (
+              <button type="button" className="ref-add ref-add-video" onClick={() => videoRef.current?.click()}>
+                <Icon name="Video" size={18} />
+                <span>Video ekle</span>
+              </button>
+            ) : null}
+            <input ref={videoRef} type="file" accept="video/*" multiple hidden onChange={onPickVideos} />
           </div>
           <div className="ref-hint">
-            Aradığın ürünün görselleri — ilki <b>kapak</b> olur.
+            İlk fotoğraf <b>kapak</b> olur. Videolar satıcılara ürün hakkında daha iyi fikir verir.
           </div>
         </div>
 

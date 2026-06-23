@@ -2366,6 +2366,24 @@ img {
   cursor: pointer;
 }
 
+.ref-video-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.ref-add-video {
+  border-color: #5a9e6e;
+  background: #edf7f0;
+  color: #2d7a48;
+}
+
+.ref-cap-video {
+  background: #1a1a1a;
+  color: #fff;
+}
+
 /* Modal + present/teklif formları */
 .modal-backdrop {
   position: fixed;
