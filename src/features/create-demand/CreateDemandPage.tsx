@@ -334,7 +334,11 @@ export function CreateDemandPage() {
             />
           </div>
           <div className="side-hint">
-            Satıcılar bu kartı <b>Talepler</b> akışında görür; dokununca açıklama, tüm fotoğraflar ve <b>Ürün Sun</b> açılır.
+            Satıcılar bu kartı{' '}
+            <span style={{ color: 'var(--purple)', fontWeight: 900 }}>Talepler</span>{' '}
+            akışında görür; dokununca açıklama, tüm fotoğraflar ve{' '}
+            <span style={{ background: 'var(--green)', color: 'var(--green-ink)', fontWeight: 900, borderRadius: 5, padding: '1px 6px' }}>Ürün Sun</span>{' '}
+            açılır.
           </div>
           <button type="button" className="button primary wide side-cta" onClick={publish}>
             <Icon name="Send" size={17} />

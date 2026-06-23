@@ -2561,13 +2561,14 @@ img {
 
 .side-hint {
   margin-top: 14px;
-  padding: 10px 13px;
+  padding: 12px 15px;
   border: 1px solid #eadffb;
   border-radius: 12px;
   background: #f7f3fd;
-  color: var(--muted);
-  font-size: 11.5px;
-  line-height: 1.5;
+  color: var(--ink);
+  font-size: 14.5px;
+  font-weight: 600;
+  line-height: 1.55;
 }
 
 .side-cta {
