@@ -2025,7 +2025,7 @@ img {
 .create-banner {
   padding: 14px 20px;
   border-radius: var(--radius);
-  background: #ffffff;
+  background: #ece7f6;
   border: 2px solid var(--green);
   color: var(--ink);
   font-size: 15.5px;
@@ -2036,6 +2036,14 @@ img {
 .create-banner b {
   font-weight: 900;
   color: var(--green-ink);
+}
+
+.create-banner-lime {
+  color: var(--green-ink);
+  background: var(--green);
+  border-radius: 6px;
+  padding: 1px 7px;
+  font-weight: 900;
 }
 
 .create-cols {

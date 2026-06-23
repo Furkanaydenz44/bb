@@ -109,7 +109,7 @@ export function CreateDemandPage() {
       />
 
       <div className="create-banner">
-        <b>Ücretsiz!</b> — Talebini aç — Satıcılar sana sunum yapsın — Son kararı sen ver.
+        <b>Ücretsiz!</b> — Talebini aç — <span className="create-banner-lime">Satıcılar sana sunum yapsın</span> — Son kararı sen ver.
       </div>
 
       <div className="create-cols">
