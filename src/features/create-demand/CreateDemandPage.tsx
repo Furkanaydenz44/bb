@@ -292,14 +292,10 @@ export function CreateDemandPage() {
             <DemandCardView
               coverImage={photos[0] ?? CATEGORY_COVER[categoryId]}
               title={title.trim() || 'Talep başlığın burada görünecek'}
+              description={description.trim() || 'Açıklaman burada kısaltılarak görünecek.'}
               price={price ? formatPrice(price) : 'Fiyat belirt'}
               timeLabel="az önce"
               ownerName={shortName(activeUser.name)}
-              ownerAvatar={activeUser.avatar}
-              ownerScore={activeUser.score}
-              presentationCount={0}
-              mine={false}
-              progress={34}
             />
           </div>
           <div className="side-hint">

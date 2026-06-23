@@ -761,16 +761,21 @@ img {
 }
 
 .demand-card-body {
-  min-height: 138px;
   padding: 14px;
   display: grid;
-  gap: 10px;
+  gap: 6px;
 }
 
 .demand-card-title {
-  min-height: 42px;
   font-weight: 900;
   line-height: 1.25;
+  font-size: 15px;
+}
+
+.demand-card-desc {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.4;
 }
 
 .price-line {

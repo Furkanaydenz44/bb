@@ -21,7 +21,7 @@ export function DemandListPage() {
     <div className="page-stack">
       <PageHeader
         title={activeCategory ? activeCategory.name : 'Talep Pazarı'}
-        description={`${activeUser.name} bağlamında açık alıcı taleplerini, kategori fırsatlarını ve sunum akışlarını yönet.`}
+        description=""
         actions={
           <Link className="button ghost" to={`${base}/araclar/teklif-kredisi`}>
             <Icon name="Calculator" size={17} />
@@ -33,7 +33,7 @@ export function DemandListPage() {
       <div className="section-heading">
         <div>
           <h2>Şimdi ilgi gören</h2>
-          <p>Yüksek bütçeli ve hızlı aksiyon bekleyen talepler.</p>
+          <p>Aksiyon bekleyen talepler.</p>
         </div>
       </div>
       <div className="demand-grid compact">
@@ -45,7 +45,6 @@ export function DemandListPage() {
       <div className="section-heading">
         <div>
           <h2>{activeCategory ? `${activeCategory.shortName} talepleri` : 'Tüm talepler'}</h2>
-          <p>Bütçesine uygun ürünü olan satıcılar bu taleplere sunum gönderir.</p>
         </div>
         <span className="muted-count">{demands.length} talep</span>
       </div>
