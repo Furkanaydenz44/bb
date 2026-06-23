@@ -564,6 +564,16 @@ img {
   color: var(--muted);
 }
 
+.page-header-lime {
+  background: var(--green);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+}
+
+.page-header-lime h1 {
+  color: var(--green-ink);
+}
+
 .page-actions {
   display: flex;
   flex-wrap: wrap;

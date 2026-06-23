@@ -21,6 +21,7 @@ export function DemandListPage() {
     <div className="page-stack">
       <PageHeader
         title={activeCategory ? activeCategory.name : 'Talep Pazarı'}
+        className="page-header-lime"
         description=""
         actions={
           <Link className="button ghost" to={`${base}/araclar/teklif-kredisi`}>
