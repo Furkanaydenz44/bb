@@ -319,7 +319,11 @@ export function CreateDemandPage() {
         </div>
 
         <aside className="create-side">
-          <div className="field-label">Önizleme · satıcılar böyle görecek</div>
+          <div className="preview-label">
+            <span className="preview-label-main">ÖNİZLEME</span>
+            <span className="preview-label-sep"> · </span>
+            <span className="preview-label-sub">SATICILAR BÖYLE GÖRECEK</span>
+          </div>
           <div className="demand-card preview-card">
             <DemandCardView
               coverImage={photos[0] ?? CATEGORY_COVER[categoryId]}

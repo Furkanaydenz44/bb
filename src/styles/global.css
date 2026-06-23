@@ -2072,6 +2072,28 @@ img {
   margin-top: 0;
 }
 
+.preview-label {
+  margin: 0 0 9px;
+  font-size: 12px;
+  font-weight: 850;
+  letter-spacing: 0.04em;
+}
+
+.preview-label-main {
+  color: var(--purple);
+}
+
+.preview-label-sep {
+  color: var(--muted);
+}
+
+.preview-label-sub {
+  color: var(--green-ink);
+  background: var(--green);
+  border-radius: 5px;
+  padding: 1px 6px;
+}
+
 .card-block {
   border: 2px solid var(--purple);
   border-radius: 16px;
