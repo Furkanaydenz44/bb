@@ -42,13 +42,7 @@ export function ExplorePage() {
     <div className="page-stack">
       <PageHeader
         title="Keşfet"
-        description="Aradığın ürünü üstteki çubuktan ara ya da kategoriden gözat."
-        actions={
-          <Link className="button primary" to={`${base}/talep-ac`}>
-            <Icon name="Plus" size={17} />
-            Talep Aç
-          </Link>
-        }
+        description="Aradığın ürünü üstteki arama çubuğundan arat ya da kategorilere göz at."
       />
 
       {q ? (
@@ -89,7 +83,6 @@ export function ExplorePage() {
           <div className="section-heading">
             <div>
               <h2>Kategoriler</h2>
-              <p>Bir kategoriye gir, o kategorideki açık alıcı taleplerini gör.</p>
             </div>
           </div>
           <section className="category-visual-grid">
