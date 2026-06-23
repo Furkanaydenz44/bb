@@ -566,12 +566,14 @@ img {
 
 .page-header-lime {
   background: var(--green);
-  border-radius: var(--radius);
-  padding: 20px 24px;
+  border-radius: 12px;
+  padding: 8px 14px;
+  align-self: flex-start;
 }
 
 .page-header-lime h1 {
   color: var(--green-ink);
+  font-size: 22px;
 }
 
 .page-actions {
