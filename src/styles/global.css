@@ -564,15 +564,12 @@ img {
   color: var(--muted);
 }
 
-.page-header-lime {
-  background: var(--green);
-  border-radius: 12px;
-  padding: 8px 14px;
-  align-self: flex-start;
-}
-
 .page-header-lime h1 {
+  display: inline-block;
+  background: var(--green);
   color: var(--green-ink);
+  border-radius: 12px;
+  padding: 6px 14px;
   font-size: 22px;
 }
 
