@@ -778,13 +778,14 @@ img {
 .demand-card-title {
   font-weight: 900;
   line-height: 1.25;
-  font-size: 15px;
+  font-size: 15.5px;
 }
 
 .demand-card-desc {
-  font-size: 13px;
+  font-size: 15.5px;
   color: var(--muted);
-  line-height: 1.4;
+  line-height: 1.45;
+  font-weight: 500;
 }
 
 .price-line {
