@@ -2111,30 +2111,33 @@ img {
 .chip {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  min-height: 38px;
-  padding: 0 15px;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 18px;
   border: 1.5px solid var(--line-strong);
   border-radius: 999px;
   background: var(--surface);
-  color: var(--muted);
-  font-weight: 800;
-  font-size: 13.5px;
+  color: #111111;
+  font-weight: 900;
+  font-size: 15px;
   transition: 140ms ease;
 }
 
 .chip svg {
   color: var(--purple);
+  width: 18px;
+  height: 18px;
 }
 
 .chip.active {
-  background: var(--green);
-  border-color: var(--green-ink);
-  color: var(--green-ink);
+  background: var(--surface);
+  border-color: #111111;
+  border-width: 2px;
+  color: #111111;
 }
 
 .chip.active svg {
-  color: var(--green-ink);
+  color: var(--purple);
 }
 
 .card-block.stack {
