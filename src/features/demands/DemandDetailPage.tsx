@@ -1,11 +1,12 @@
 import { useRef, useState, type ChangeEvent } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Icon, type IconName } from '../../components/Icon';
 import { Modal } from '../../components/Modal';
 import { imageSrc } from '../../data/images';
 import { filesToDataUrls } from '../../lib/imageUpload';
 import { getCategory, getUser, offerCreditEstimate } from '../../services/catalogService';
-import { categoryPath, presentationPath, userBase } from '../../utils/routes';
+import { categoryPath, demandPath, presentationPath, userBase } from '../../utils/routes';
+import { StatusBadge } from '../../components/StatusBadge';
 import { formatPrice, locationLabel } from '../../utils/format';
 import { useAppData } from '../../store/appData';
 
@@ -29,9 +30,11 @@ export function DemandDetailPage() {
   const [activeImage, setActiveImage] = useState(0);
   const [presenting, setPresenting] = useState(false);
   const [presentPhotos, setPresentPhotos] = useState<string[]>([]);
+  const [presentVideos, setPresentVideos] = useState<string[]>([]);
   const [presentNote, setPresentNote] = useState('');
   const [presentCondition, setPresentCondition] = useState('İkinci el · iyi durumda');
   const presentFileRef = useRef<HTMLInputElement>(null);
+  const presentVideoRef = useRef<HTMLInputElement>(null);
 
   if (!demand) {
     return (
@@ -65,6 +68,14 @@ export function DemandDetailPage() {
     setPresentPhotos((prev) => [...prev, ...urls].slice(0, MAX_PHOTOS));
     event.target.value = '';
   }
+  function onPickPresentVideos(event: ChangeEvent<HTMLInputElement>) {
+    const files = event.target.files;
+    if (!files?.length) return;
+    const urls = Array.from(files).map((f) => URL.createObjectURL(f));
+    setPresentVideos((prev) => [...prev, ...urls].slice(0, 5));
+    event.target.value = '';
+  }
+
   function submitPresentation() {
     if (!demand || !presentValid) return;
     createPresentation({
@@ -77,6 +88,7 @@ export function DemandDetailPage() {
     });
     setPresenting(false);
     setPresentPhotos([]);
+    setPresentVideos([]);
     setPresentNote('');
   }
 
@@ -85,8 +97,6 @@ export function DemandDetailPage() {
   const thumbs = images.slice(0, 6);
   const step = (delta: number) => setActiveImage((index) => (index + delta + images.length) % images.length);
 
-  const listTitle = offers.length ? 'Resmi teklifler' : isOwner ? 'Ürün sunumları' : 'Sunum ve teklif';
-  const listCount = offers.length ? `${offers.length} teklif` : `${visiblePresentations.length} sunum`;
 
   return (
     <div className="page-stack">
@@ -104,44 +114,72 @@ export function DemandDetailPage() {
 
       <div className="detail-page">
         <section className="detail-media-card">
-          <div className="detail-hero">
-            <img src={imageSrc(images[safeIndex], 1040)} alt={demand.title} />
-            <div className="detail-scrim" />
-            <span className="detail-pin">
-              {category ? <Icon name={category.icon as IconName} size={12} /> : null} {category?.name ?? 'Kategori'}
-            </span>
-            <span className="detail-fresh">
-              <span className="detail-dot" /> {isOwner ? 'Senin talebin' : 'Yeni talep'}
-            </span>
-            {images.length > 1 && (
-              <>
-                <button type="button" className="detail-nav prev" aria-label="Önceki görsel" onClick={() => step(-1)}>
-                  <Icon name="ChevronLeft" size={20} />
-                </button>
-                <button type="button" className="detail-nav next" aria-label="Sonraki görsel" onClick={() => step(1)}>
-                  <Icon name="ChevronRight" size={20} />
-                </button>
-                <span className="detail-count">
-                  {safeIndex + 1} / {images.length}
-                </span>
-              </>
-            )}
-          </div>
-          <div className="detail-media-foot">
-            <div className="detail-thumbs">
-              {thumbs.map((imageId, index) => (
-                <button
-                  key={imageId}
-                  type="button"
-                  className={`detail-thumb${index === safeIndex ? ' on' : ''}`}
-                  aria-label={`Görsel ${index + 1}`}
-                  onClick={() => setActiveImage(index)}
-                >
-                  <img src={imageSrc(imageId, 160)} alt="" />
-                </button>
-              ))}
+          <div className="detail-media-slots">
+            <div className="detail-photo-main">
+              {images[safeIndex] ? (
+                <img src={imageSrc(images[safeIndex], 800)} alt={demand.title} />
+              ) : (
+                <div className="detail-photo-main-empty"><Icon name="Camera" size={32} /></div>
+              )}
+            </div>
+            <p className="detail-media-section-label">Fotoğraflar</p>
+            <div className="detail-photo-grid">
+              {Array.from({ length: 5 }, (_, i) => {
+                const src = images[i];
+                return src ? (
+                  <button
+                    key={src}
+                    type="button"
+                    className={`detail-slot detail-slot-photo${i === safeIndex ? ' on' : ''}`}
+                    onClick={() => setActiveImage(i)}
+                  >
+                    <img src={imageSrc(src, 400)} alt={`Fotoğraf ${i + 1}`} />
+                  </button>
+                ) : (
+                  <div key={i} className="detail-slot detail-slot-empty">
+                    <Icon name="Camera" size={20} />
+                  </div>
+                );
+              })}
+            </div>
+            <p className="detail-media-section-label" style={{ marginTop: 14 }}>Videolar</p>
+            <div className="detail-video-grid">
+              {Array.from({ length: 3 }, (_, i) => {
+                const src = demand.videos?.[i];
+                return src ? (
+                  <div key={src} className="detail-slot detail-slot-video">
+                    <video src={src} muted playsInline controls className="detail-slot-video-el" />
+                  </div>
+                ) : (
+                  <div key={i} className="detail-slot detail-slot-empty">
+                    <Icon name="Video" size={20} />
+                  </div>
+                );
+              })}
             </div>
           </div>
+        </section>
+
+        <main className="detail-main">
+          <section className="detail-info-card">
+            <span className="detail-box-label">Başlık</span>
+            <h1 className="detail-title">{demand.title}</h1>
+          </section>
+
+          <section className="detail-price-pill">
+            <div className="detail-price-pill-top">
+              <span className="detail-price-pill-label">Fiyat</span>
+            </div>
+            <div className="detail-price-pill-bottom">
+              <div className="detail-price-pill-value">{formatPrice(demand.price)}</div>
+            </div>
+          </section>
+
+          <section className="detail-spec-card">
+            <span className="detail-box-label">Açıklama</span>
+            <p className="detail-desc">{demand.description}</p>
+          </section>
+
           <section className="detail-assurance-card">
             <h3>Bulbana güven akışı</h3>
             <div className="detail-assurance-list">
@@ -150,76 +188,50 @@ export function DemandDetailPage() {
               <span><i>3</i> Anlaşma sonrası kargo takibi açılır</span>
             </div>
           </section>
-        </section>
-
-        <main className="detail-main">
-          <section className="detail-info-card">
-            <div className="detail-eyebrow">
-              <span className="detail-cat-badge">
-                {category ? <Icon name={category.icon as IconName} size={12} /> : null} {category?.name ?? 'Kategori'}
-              </span>
-              <span className="detail-trust-badge">
-                <Icon name="Sparkles" size={11} /> {demand.badge}
-              </span>
-            </div>
-            <h1 className="detail-title">{demand.title}</h1>
-            <p className="detail-desc">{demand.description}</p>
-            <div className="detail-trust-band">
-              {TRUST_ITEMS.map((item) => (
-                <div key={item.title} className="detail-trust-item">
-                  <Icon name={item.icon} size={22} className="detail-trust-icon-bare" />
-                  <div>
-                    <b>{item.title}</b>
-                    <span>{item.copy}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="detail-meta-row">
-              <span>
-                <Icon name="MapPin" size={13} /> {locationLabel(demand.city, demand.district)}
-              </span>
-              <span>
-                <Icon name="Clock" size={13} /> {demand.createdAtLabel}
-              </span>
-              <span>
-                <Icon name="Inbox" size={13} /> {presentations.length} sunum
-              </span>
-            </div>
-          </section>
-
-          <section className="detail-spec-card">
-            <div className="detail-card-title">
-              <h3>Aranan ürün kriterleri</h3>
-              <span className="detail-cat-chip">{category?.name ?? 'Kategori'}</span>
-            </div>
-            <div className="detail-spec-grid">
-              <div className="detail-spec">
-                <b>Bütçe net</b>
-                <span>{formatPrice(demand.price)} seviyesine uygun ürün bekleniyor.</span>
-              </div>
-              <div className="detail-spec">
-                <b>Orijinallik kanıtı</b>
-                <span>Koleksiyon için seri no veya net fotoğraf avantajı sağlar.</span>
-              </div>
-              <div className="detail-spec">
-                <b>Teslimat bölgesi</b>
-                <span>{demand.city} içi hızlı teslimat öne çıkar.</span>
-              </div>
-              <div className="detail-spec">
-                <b>Teklif maliyeti</b>
-                <span>Alıcı teklif isterse resmi fiyat {creditEstimate} kredi.</span>
-              </div>
-            </div>
-          </section>
 
         </main>
 
         <aside className="detail-aside">
           <section className="detail-price-panel">
-            <div className="detail-price-label">Alıcının net fiyatı</div>
-            <div className="detail-price-value">{formatPrice(demand.price)}</div>
-            <p className="detail-price-sub">Alıcı bu bütçeye uygun, doğrulanabilir ürün sunumu bekliyor.</p>
+            <div className="detail-info-chips">
+              <div className="detail-info-chip">
+                <span className="detail-info-chip-label">Şehir</span>
+                <span className="detail-info-chip-value">{demand.city}</span>
+              </div>
+              <div className="detail-info-chip">
+                <span className="detail-info-chip-label">İlçe</span>
+                <span className="detail-info-chip-value">{demand.district ?? '—'}</span>
+              </div>
+              <div className="detail-info-chip">
+                <span className="detail-info-chip-label">Kategori</span>
+                <span className="detail-info-chip-value">{category?.name ?? '—'}</span>
+              </div>
+              <div className="detail-info-chip">
+                <span className="detail-info-chip-label">Marka</span>
+                <span className="detail-info-chip-value">{demand.brand ?? '—'}</span>
+              </div>
+              <div className="detail-info-chip">
+                <span className="detail-info-chip-label">Model</span>
+                <span className="detail-info-chip-value">{demand.model ?? '—'}</span>
+              </div>
+              <div className="detail-info-chip">
+                <span className="detail-info-chip-label">Yıl</span>
+                <span className="detail-info-chip-value">{demand.year ?? '—'}</span>
+              </div>
+              <div className="detail-info-chip">
+                <span className="detail-info-chip-label">Renk</span>
+                <span className="detail-info-chip-value">{demand.color ?? '—'}</span>
+              </div>
+              <div className="detail-info-chip">
+                <span className="detail-info-chip-label">Ürün Defosu</span>
+                <span className="detail-info-chip-value">{demand.hasDefect ?? '—'}</span>
+              </div>
+              <div className="detail-info-chip">
+                <span className="detail-info-chip-label">Ürün Durumu</span>
+                <span className="detail-info-chip-value">{demand.condition ?? '—'}</span>
+              </div>
+            </div>
+
             <div className="detail-cta">
               {isOwner ? (
                 <div className="detail-hint">
@@ -227,73 +239,73 @@ export function DemandDetailPage() {
                 </div>
               ) : myPresentation ? (
                 <div className="detail-hint">
-                  <b>Sunumun iletildi.</b> Alıcı beğenip <b>Teklif İste</b> derse resmi teklif verirsin (≈{creditEstimate} kredi).
+                  <b>Sunumun iletildi.</b> Alıcı beğenip <b>Teklif İste</b> derse resmi teklif verirsin.
                 </div>
               ) : (
-                <>
-                  <button type="button" className="detail-sun-btn" onClick={() => setPresenting(true)}>
-                    <Icon name="Store" size={17} /> Ürün Sun
-                  </button>
-                  <div className="detail-hint">
-                    Ücretsiz sunum gönder. Alıcı beğenip <b>Teklif İste</b> derse resmi teklif verirsin.
-                  </div>
-                </>
+                <button type="button" className="detail-sun-btn" onClick={() => setPresenting(true)}>
+                  <Icon name="Store" size={17} /> Ürün Sun
+                </button>
               )}
-            </div>
-            <div className="detail-kpis">
-              <div className="detail-kpi">
-                <b>{presentations.length}</b>
-                <span>Sunum</span>
-              </div>
-              <div className="detail-kpi">
-                <b>{offers.length}</b>
-                <span>Teklif</span>
-              </div>
-              <div className="detail-kpi">
-                <b>{creditEstimate}</b>
-                <span>Kredi</span>
-              </div>
             </div>
           </section>
 
-          <section className="detail-offers-panel">
-            <div className="detail-offers-head">
-              <h3>{listTitle}</h3>
-              <span>{listCount}</span>
-            </div>
-            <div className="detail-offer-list">
-              {visiblePresentations.length ? (
-                visiblePresentations.map((presentation) => {
-                  const seller = getUser(presentation.sellerId);
-                  return (
-                    <Link
-                      key={presentation.id}
-                      className="detail-offer-row"
-                      to={presentationPath(routeUser.username, demand, seller.username)}
-                    >
-                      <span className="detail-offer-thumb">
-                        <img src={imageSrc(presentation.coverImage, 120)} alt="" />
-                      </span>
-                      <span className="detail-offer-copy">
-                        <b>{isOwner ? seller.name : 'Senin sunumun'}</b>
-                        <small>
-                          {presentation.images.length} görsel · {presentation.condition}
-                        </small>
-                      </span>
-                      <Icon name="ChevronRight" size={15} />
-                    </Link>
-                  );
-                })
-              ) : (
-                <div className="detail-empty-list">
-                  <b>Henüz sunum yok</b>
-                  <span>Uygun ürün sunulduğunda burada görünür.</span>
-                </div>
-              )}
-            </div>
-          </section>
         </aside>
       </div>
+
+      {isOwner && (
+        <section className="pres-list-panel">
+          <h2 className="pres-list-title">
+            <Icon name="Inbox" size={20} />
+            Sunumlar
+            {presentations.length > 0 && (
+              <span className="pres-list-count">{presentations.length}</span>
+            )}
+          </h2>
+          {presentations.length === 0 ? (
+            <div className="pres-list-empty">
+              <Icon name="PackageOpen" size={28} />
+              <p>Henüz sunum yok. Satıcılar ürün sunduğunda burada görünür.</p>
+            </div>
+          ) : (
+            <div className="pres-list-grid">
+              {presentations.map((pres) => {
+                const seller = getUser(pres.sellerId);
+                const statusTone = pres.status === 'offer_requested' ? 'green' : pres.status === 'rejected' ? 'warning' : 'purple';
+                const statusLabel = pres.status === 'offer_requested' ? 'Teklif İstendi' : pres.status === 'rejected' ? 'Reddedildi' : 'İnceleniyor';
+                return (
+                  <Link
+                    key={pres.id}
+                    className="pres-card"
+                    to={presentationPath(routeUser.username, demand, pres.id)}
+                  >
+                    <div className="pres-card-cover">
+                      <img src={imageSrc(pres.coverImage, 400)} alt="" />
+                    </div>
+                    <div className="pres-card-body">
+                      <div className="pres-card-seller">
+                        <span className="pres-card-avatar">{seller.avatar}</span>
+                        <div>
+                          <strong>{seller.name}</strong>
+                          <small>@{seller.username} · {seller.city}</small>
+                        </div>
+                      </div>
+                      <p className="pres-card-desc">{pres.description}</p>
+                      <div className="pres-card-meta">
+                        <span><Icon name="PackageCheck" size={13} /> {pres.condition}</span>
+                        <span><Icon name="Image" size={13} /> {pres.images.length} fotoğraf</span>
+                      </div>
+                    </div>
+                    <div className="pres-card-status">
+                      <StatusBadge tone={statusTone}>{statusLabel}</StatusBadge>
+                      <Icon name="ChevronRight" size={18} />
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </section>
+      )}
 
       <Modal
         open={presenting}
@@ -311,34 +323,66 @@ export function DemandDetailPage() {
         }
       >
         <div className="present-form">
-          <div className="field-label">
-            Ürün görselleri ·{' '}
-            <span className={`muted-count${presentPhotos.length < MIN_PHOTOS ? ' warn' : ''}`}>
-              {presentPhotos.length}/{MAX_PHOTOS} · en az {MIN_PHOTOS}
-            </span>
-          </div>
-          <div className="ref-grid">
-            {presentPhotos.map((src, index) => (
-              <div key={index} className="ref-thumb">
-                <img src={imageSrc(src, 220)} alt="" />
-                {index === 0 ? <span className="ref-cap">Kapak</span> : null}
-                <button
-                  type="button"
-                  className="ref-x"
-                  aria-label="Kaldır"
-                  onClick={() => setPresentPhotos((prev) => prev.filter((_, i) => i !== index))}
-                >
-                  ×
-                </button>
+          <div className="present-media-row">
+            <div className="present-media-col">
+              <div className="field-label">
+                Fotoğraflar ·{' '}
+                <span className={`muted-count${presentPhotos.length < MIN_PHOTOS ? ' warn' : ''}`}>
+                  {presentPhotos.length}/{MAX_PHOTOS} · en az {MIN_PHOTOS}
+                </span>
               </div>
-            ))}
-            {presentPhotos.length < MAX_PHOTOS ? (
-              <button type="button" className="ref-add" onClick={() => presentFileRef.current?.click()}>
-                <Icon name="Plus" size={18} />
-                <span>Foto ekle</span>
-              </button>
-            ) : null}
-            <input ref={presentFileRef} type="file" accept="image/*" multiple hidden onChange={onPickPresentFiles} />
+              <div className="ref-grid">
+                {presentPhotos.map((src, index) => (
+                  <div key={index} className="ref-thumb">
+                    <img src={imageSrc(src, 220)} alt="" />
+                    {index === 0 ? <span className="ref-cap">Kapak</span> : null}
+                    <button
+                      type="button"
+                      className="ref-x"
+                      aria-label="Kaldır"
+                      onClick={() => setPresentPhotos((prev) => prev.filter((_, i) => i !== index))}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+                {presentPhotos.length < MAX_PHOTOS ? (
+                  <button type="button" className="ref-add" onClick={() => presentFileRef.current?.click()}>
+                    <Icon name="Image" size={18} />
+                    <span>Foto ekle</span>
+                  </button>
+                ) : null}
+                <input ref={presentFileRef} type="file" accept="image/*" multiple hidden onChange={onPickPresentFiles} />
+              </div>
+            </div>
+            <div className="present-media-col">
+              <div className="field-label">
+                Videolar · <span className="muted-count">{presentVideos.length}/5</span>
+              </div>
+              <div className="ref-grid">
+                {presentVideos.map((src, index) => (
+                  <div key={index} className="ref-thumb ref-thumb-video">
+                    <video src={src} muted playsInline className="ref-video-preview" />
+                    <span className="ref-cap ref-cap-video">Video</span>
+                    <button
+                      type="button"
+                      className="ref-x"
+                      aria-label="Kaldır"
+                      onClick={() => setPresentVideos((prev) => prev.filter((_, i) => i !== index))}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+                {presentVideos.length < 5 ? (
+                  <button type="button" className="ref-add ref-add-video" onClick={() => presentVideoRef.current?.click()}>
+                    <Icon name="Video" size={18} />
+                    <span>Video ekle</span>
+                  </button>
+                ) : null}
+                <input ref={presentVideoRef} type="file" accept="video/*" multiple hidden onChange={onPickPresentVideos} />
+              </div>
+            </div>
           </div>
           <label className="present-field">
             <span>Ürün durumu</span>

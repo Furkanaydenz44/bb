@@ -54,11 +54,9 @@ export function AppLayout() {
     navigate(`${base}/kesfet${q ? `?q=${encodeURIComponent(q)}` : ''}`);
   }
   function toggleNotif() {
-    setNotifOpen((open) => {
-      const next = !open;
-      if (next && unread) markNotificationsRead(activeUser.id);
-      return next;
-    });
+    const next = !notifOpen;
+    setNotifOpen(next);
+    if (next && unread) markNotificationsRead(activeUser.id);
   }
 
   return (

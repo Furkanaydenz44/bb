@@ -76,9 +76,14 @@ export interface CreateDemandInput {
   price: number;
   city: string;
   district?: string;
+  brand?: string;
+  model?: string;
+  year?: string;
+  color?: string;
   condition?: string;
   hasDefect?: string;
   referenceImages?: string[];
+  videos?: string[];
 }
 
 export interface CreatePresentationInput {
@@ -245,12 +250,17 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         price: input.price || 0,
         city: input.city || 'İstanbul',
         district: input.district?.trim() || undefined,
+        brand: input.brand || undefined,
+        model: input.model || undefined,
+        year: input.year || undefined,
+        color: input.color || undefined,
         condition: input.condition || undefined,
         hasDefect: input.hasDefect || undefined,
         badge: 'Aktif Alıcı',
         createdAtLabel: 'az önce',
         coverImage: input.referenceImages?.[0] || CATEGORY_COVER[input.categoryId] || imageIds.camera,
         referenceImages: input.referenceImages ?? [],
+        videos: input.videos ?? [],
       };
       setUserDemands((prev) => [demand, ...prev]);
       return demand;

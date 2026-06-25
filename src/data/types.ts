@@ -144,11 +144,16 @@ export interface Demand {
   price: number;
   city: string;
   district?: string;
+  brand?: string;
+  model?: string;
+  year?: string;
+  color?: string;
   condition?: string;
   hasDefect?: string;
   badge: string;
   createdAtLabel: string;
   coverImage: string;
   referenceImages: string[];
+  videos?: string[];
   featured?: boolean;
 }

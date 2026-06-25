@@ -81,68 +81,34 @@ export function PresentationDetailPage() {
         </div>
 
         <div className="presentation-content">
-          {status === 'offer_requested' ? (
-            <StatusBadge tone="green">{offer ? 'Teklif verildi · sohbet açık' : 'Teklif istendi'}</StatusBadge>
-          ) : status === 'rejected' ? (
-            <StatusBadge tone="warning">Reddedildi</StatusBadge>
-          ) : (
-            <StatusBadge tone="purple">Sunuldu · inceleniyor</StatusBadge>
-          )}
+          <span className="pres-page-title">Ürün Sunumu</span>
+          <hr className="pres-page-title-divider" />
           <h1>{demand.title}</h1>
+          <hr className="pres-page-title-divider" />
           <p>{presentation.description}</p>
 
-          <div className="seller-panel">
-            <Avatar label={seller.avatar} size="lg" />
-            <div>
-              <span>Satıcı</span>
-              <strong>{seller.name}</strong>
-              <small>@{seller.username} · {seller.city} · {seller.responseTime} yanıt</small>
-            </div>
-            <StatusBadge tone="purple">{seller.completionRate}% tamamlama</StatusBadge>
-          </div>
 
-          <div className="criteria-grid">
-            <div>
-              <Icon name="PackageCheck" size={17} />
-              <strong>Ürün durumu</strong>
-              <span>{presentation.condition}</span>
-            </div>
-            <div>
-              <Icon name="Image" size={17} />
-              <strong>Kanıt seti</strong>
-              <span>{presentation.images.length} görsel{presentation.videos ? ` · ${presentation.videos} video` : ''}</span>
-            </div>
-            <div>
-              <Icon name="MapPin" size={17} />
-              <strong>Konum</strong>
-              <span>{presentation.city} teslimat opsiyonu</span>
-            </div>
-            <div>
-              <Icon name="ShieldCheck" size={17} />
-              <strong>Akış</strong>
-              <span>Teklif iste → satıcı teklif verir → sohbet → pazarlık → kargo.</span>
-            </div>
-          </div>
         </div>
 
         <aside className="action-panel">
-          <span className="eyebrow">Alıcı bütçesi</span>
-          <strong className="hero-price">{formatPrice(demand.price)}</strong>
-          <p>Beğendiğin sunumdan teklif iste; satıcı krediyle resmi teklif verince sohbet açılır.</p>
-          <div className="action-metrics">
-            <div>
-              <strong>{seller.score}</strong>
-              <span>puan</span>
-            </div>
-            <div>
-              <strong>{seller.sales}</strong>
-              <span>işlem</span>
-            </div>
-            <div>
-              <strong>{presentation.images.length}</strong>
-              <span>görsel</span>
+          <div className="pres-seller-info">
+            <span className="pres-seller-avatar">{seller.avatar}</span>
+            <div className="pres-seller-stats">
+              <strong className="pres-seller-name">{seller.name}</strong>
+              <div className="pres-seller-metrics">
+                <span><strong>{seller.score}</strong> puan</span>
+                <span><strong>{seller.sales}</strong> işlem</span>
+              </div>
             </div>
           </div>
+          <section className="detail-price-pill">
+            <div className="detail-price-pill-top">
+              <span className="detail-price-pill-label">Alıcının Ortalama Fiyat Beklentisi</span>
+            </div>
+            <div className="detail-price-pill-bottom">
+              <div className="detail-price-pill-value">{formatPrice(demand.price)}</div>
+            </div>
+          </section>
 
           {isBuyer && status === 'submitted' ? (
             <>
@@ -154,9 +120,6 @@ export function PresentationDetailPage() {
                 <Icon name="X" size={17} />
                 Reddet
               </button>
-              <p style={{ margin: 0, fontSize: 12.5, lineHeight: 1.5, color: 'var(--muted)' }}>
-                Beğendiğin sunumdan teklif iste; satıcı resmi fiyatını verir.
-              </p>
             </>
           ) : null}
 
@@ -180,6 +143,10 @@ export function PresentationDetailPage() {
                 <Icon name="Handshake" size={17} />
                 Resmi Teklif Ver · {cost} kredi
               </button>
+              <div className="pres-offer-requested-badge">
+                <span className="pres-offer-dot" />
+                Alıcı sunumu beğendi ve teklif talep etti
+              </div>
               <p style={{ margin: 0, fontSize: 12.5, lineHeight: 1.5, color: balance < cost ? '#b5462e' : 'var(--muted)' }}>
                 {balance < cost
                   ? `Kredin yetersiz (${balance}/${cost}). Kredi yalnız ilk teklifte ödenir; pazarlık ücretsiz.`
@@ -205,14 +172,6 @@ export function PresentationDetailPage() {
             <p style={{ margin: 0, fontSize: 12.5, lineHeight: 1.5, color: 'var(--muted)' }}>Alıcı bu sunumu beğenmedi.</p>
           ) : null}
 
-          <div className="trust-list">
-            {seller.trustSignals.map((signal) => (
-              <span key={signal}>
-                <Icon name="CheckCircle2" size={15} />
-                {signal}
-              </span>
-            ))}
-          </div>
         </aside>
       </section>
 
