@@ -179,7 +179,7 @@ img {
   height: 36px;
   padding: 0 20px;
   border: 0;
-  border-radius: 12px;
+  border-radius: 10px;
   background: var(--purple);
   color: #fff;
   font: inherit;
@@ -251,7 +251,7 @@ img {
   align-items: flex-start;
   gap: 10px;
   padding: 10px 11px;
-  border-radius: 12px;
+  border-radius: 11px;
   color: var(--ink);
   transition: background 0.14s ease;
 }
@@ -371,7 +371,7 @@ img {
   align-items: center;
   gap: 10px;
   padding: 10px 12px;
-  border-radius: 12px;
+  border-radius: 11px;
   color: var(--ink);
   font-weight: 700;
   font-size: 13.5px;
@@ -453,18 +453,14 @@ img {
 .button,
 .category-chip,
 .back-link {
-  border-radius: 12px;
+  min-height: 38px;
+  border-radius: var(--radius);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   border: 1px solid var(--line);
   white-space: nowrap;
-}
-
-.category-chip,
-.back-link {
-  min-height: 38px;
 }
 
 .credit-pill {
@@ -530,8 +526,7 @@ img {
 
 .page-header h1 {
   margin: 0;
-  font-family: var(--font-d);
-  font-size: 24px;
+  font-size: 21px;
   font-weight: 700;
   line-height: 1.25;
   letter-spacing: 0;
@@ -562,10 +557,9 @@ img {
 }
 
 .button {
-  min-height: 44px;
-  padding: 0 18px;
+  padding: 0 16px;
   cursor: pointer;
-  font-weight: 700;
+  font-weight: 600;
   background: var(--surface);
   color: var(--ink);
 }
@@ -660,9 +654,13 @@ img {
 .category-tile span,
 .empty-copy,
 .empty-inline,
+.seller-panel small,
+.buyer-strip small,
 .card-footer,
 .footer-stat,
-.muted-count {
+.muted-count,
+.trust-list,
+.criteria-grid span {
   color: var(--muted);
 }
 
@@ -836,14 +834,21 @@ img {
   gap: 16px;
 }
 
-.eyebrow,
-.pres-page-eyebrow {
-  display: block;
-  color: var(--purple-dark);
+.eyebrow {
+  color: #6d3df2;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 950;
+  text-transform: uppercase;
+  letter-spacing: 0;
+}
+
+.pres-price-label {
+  display: block;
+  font-size: 22px;
+  font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.04em;
+  color: var(--ink);
 }
 
 @keyframes pres-dot-blink {
@@ -922,6 +927,15 @@ img {
   font-weight: 600;
 }
 
+.pres-page-eyebrow {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
 .pres-price-box {
   display: flex;
   flex-direction: column;
@@ -962,7 +976,7 @@ img {
   gap: 4px;
   padding: 8px;
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: 20px;
   background: var(--surface);
   overflow-y: auto;
 }
@@ -1117,6 +1131,53 @@ img {
   font-weight: 600;
 }
 
+.buyer-strip,
+.seller-panel,
+.profile-hero {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  background: #f4f0fb;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.buyer-strip span,
+.seller-panel span {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.buyer-strip strong,
+.seller-panel strong {
+  display: block;
+  font-size: 17px;
+}
+
+.criteria-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.criteria-grid > div {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-card);
+  display: grid;
+  gap: 6px;
+}
+
+.criteria-grid svg {
+  color: var(--purple);
+}
+
 .action-panel {
   position: sticky;
   top: 128px;
@@ -1164,6 +1225,24 @@ img {
   cursor: zoom-in;
 }
 
+.trust-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.trust-list span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-card);
+}
 
 .search-band input,
 .product-form input,
@@ -1172,8 +1251,8 @@ img {
 .calculator-panel input,
 .calculator-panel select {
   width: 100%;
-  border: 1px solid var(--line-strong);
-  border-radius: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
   background: var(--surface-card);
   color: var(--ink);
   outline: none;
@@ -1431,7 +1510,7 @@ img {
 .kredi-hero {
   position: relative;
   overflow: hidden;
-  border-radius: 16px;
+  border-radius: 26px;
   padding: 34px 36px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -1536,7 +1615,7 @@ img {
   gap: 8px;
   height: 44px;
   padding: 0 20px;
-  border-radius: 12px;
+  border-radius: 13px;
   background: var(--surface-card);
   color: var(--ink);
   font-weight: 800;
@@ -1583,7 +1662,7 @@ img {
   flex-direction: column;
   gap: 16px;
   padding: 26px 24px;
-  border-radius: 16px;
+  border-radius: 20px;
   background: var(--surface);
   border: 1px solid var(--line);
   box-shadow: 0 1px 2px rgba(74, 46, 120, 0.04), 0 22px 44px -32px rgba(74, 46, 120, 0.4);
@@ -1695,9 +1774,9 @@ img {
 
 .kredi-pack-btn {
   margin-top: auto;
-  height: 44px;
+  height: 48px;
   border: 0;
-  border-radius: 12px;
+  border-radius: 14px;
   cursor: pointer;
   font: inherit;
   font-weight: 800;
@@ -1736,7 +1815,7 @@ img {
   gap: 14px;
   align-items: flex-start;
   padding: 18px 20px;
-  border-radius: 14px;
+  border-radius: 18px;
   background: var(--surface-soft);
   border: 1px solid var(--line);
 }
@@ -2177,8 +2256,8 @@ img {
 }
 
 .card-block {
-  border: 1px solid var(--line-strong);
-  border-radius: 12px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
   background: var(--surface);
   box-shadow: 0 12px 26px -22px rgba(0, 0, 0, 0.08);
 }
@@ -2364,7 +2443,7 @@ img {
   gap: 8px;
   background: var(--surface);
   border: 1px solid var(--line-strong);
-  border-radius: 14px;
+  border-radius: 18px;
   box-shadow: 0 24px 48px -20px rgba(74, 46, 120, 0.5);
 }
 
@@ -2373,7 +2452,7 @@ img {
   min-height: 40px;
   padding: 0 13px;
   border: 1px solid var(--line-strong);
-  border-radius: 12px;
+  border-radius: 13px;
   outline: none;
   background: var(--surface-soft);
   color: var(--ink);
@@ -2535,7 +2614,7 @@ img {
   overflow: auto;
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: 20px;
   box-shadow: 0 40px 80px -30px rgba(46, 26, 71, 0.6);
 }
 
@@ -2980,7 +3059,7 @@ img {
 .detail-offers-panel {
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: 18px;
 }
 
 .detail-media-card {
@@ -3221,7 +3300,7 @@ img {
   flex: 1;
   min-width: 70px;
   height: 70px;
-  border-radius: 12px;
+  border-radius: 11px;
   overflow: hidden;
   border: 2px solid var(--line);
   background: var(--surface-soft);
@@ -3303,7 +3382,7 @@ img {
 }
 
 .detail-price-value {
-  font-family: var(--font-d);
+  font-family: var(--font);
   font-size: 24px;
   font-weight: 800;
   line-height: 1.2;
@@ -3433,7 +3512,7 @@ img {
 /* ---- güven akışı: dark band ---- */
 .detail-assurance-card {
   padding: 20px 22px;
-  border-radius: 14px;
+  border-radius: 18px;
   color: #fff;
   background: linear-gradient(150deg, #2c1850 0%, #221140 100%);
 }
@@ -3478,7 +3557,7 @@ img {
 .pres-list-panel {
   margin-top: 32px;
   padding: 24px;
-  border-radius: 14px;
+  border-radius: 18px;
   border: 1px solid var(--line);
   background: var(--surface);
 }
@@ -3627,10 +3706,45 @@ img {
   position: relative;
   overflow: hidden;
   padding: 20px;
-  border-radius: 14px;
+  border-radius: 18px;
   color: #fff;
   background: linear-gradient(158deg, #a85fe6 0%, #8a3ad4 52%, #6f23b6 100%);
   box-shadow: 0 26px 50px -28px rgba(124, 58, 237, 0.7);
+}
+
+.detail-price-pill {
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1.5px solid rgba(255, 255, 255, 0.22);
+  overflow: hidden;
+}
+
+.detail-price-pill-top {
+  padding: 6px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.detail-price-pill-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.detail-price-pill-bottom {
+  padding: 8px 14px 10px;
+  background: var(--surface-card);
+}
+
+.detail-price-pill-value {
+  font-family: var(--font);
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: 0;
+  color: var(--ink);
 }
 
 .detail-info-chips {
@@ -3645,7 +3759,7 @@ img {
   flex-direction: column;
   gap: 6px;
   padding: 14px 16px;
-  border-radius: 12px;
+  border-radius: 13px;
   background: #ffffff;
   border: 1px solid rgba(255, 255, 255, 0.5);
   min-width: 0;
@@ -3680,10 +3794,10 @@ img {
   justify-content: center;
   gap: 8px;
   width: 100%;
-  height: 44px;
+  height: 48px;
   border-radius: 12px;
   font-size: 14.5px;
-  font-weight: 700;
+  font-weight: 600;
   color: #23103a;
   background: var(--green);
   box-shadow: 0 12px 24px -12px rgba(200, 244, 48, 0.8);
@@ -3692,7 +3806,7 @@ img {
 .detail-cta .detail-hint {
   margin: 0;
   padding: 13px 15px;
-  border-radius: 12px;
+  border-radius: 13px;
   background: rgba(255, 255, 255, 0.12);
   border: 1px solid rgba(255, 255, 255, 0.2);
   color: #fff;
@@ -3714,7 +3828,7 @@ img {
 
 .detail-kpi {
   padding: 11px 8px;
-  border-radius: 12px;
+  border-radius: 13px;
   text-align: center;
   background: rgba(255, 255, 255, 0.13);
   border: 1px solid rgba(255, 255, 255, 0.16);
@@ -3779,7 +3893,7 @@ img {
   gap: 11px;
   padding: 10px;
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: 13px;
   background: var(--surface);
   color: var(--muted);
   transition: 140ms ease;
@@ -3821,7 +3935,7 @@ img {
 .detail-empty-list {
   padding: 18px;
   border: 1px dashed var(--line-strong);
-  border-radius: 12px;
+  border-radius: 13px;
   background: var(--surface-soft);
   text-align: center;
 }
@@ -3881,7 +3995,7 @@ img {
 .auth-card {
   width: min(100%, 460px);
   padding: 30px;
-  border-radius: 16px;
+  border-radius: 22px;
   background: var(--surface);
   border: 1px solid var(--line);
   box-shadow: var(--shadow);
@@ -3899,9 +4013,8 @@ img {
 
 .auth-title {
   margin: 18px 0 6px;
-  font-family: var(--font-d);
-  font-size: 24px;
-  font-weight: 700;
+  font-size: 26px;
+  font-weight: 800;
 }
 
 .auth-sub {
@@ -4171,7 +4284,7 @@ img {
   width: 100%;
   padding: 8px;
   border: 0;
-  border-radius: 12px;
+  border-radius: 11px;
   background: transparent;
   text-align: left;
 }
@@ -4289,7 +4402,7 @@ img {
   min-height: 0;
   height: 100%;
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: 20px;
   background: var(--surface);
   overflow: hidden;
 }
@@ -4719,7 +4832,7 @@ img {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  height: 44px;
+  height: 40px;
   border-radius: 12px;
   cursor: pointer;
   font-family: inherit;
@@ -4748,7 +4861,7 @@ img {
 }
 .ocard-btn--counter:hover { background: #ead9fb; }
 .ocard-btn--reject {
-  flex: 0 0 44px;
+  flex: 0 0 42px;
   padding: 0;
   color: var(--muted);
   background: rgba(255, 255, 255, 0.55);
@@ -4801,7 +4914,7 @@ img {
 .ocard-counter-send {
   flex: 0 0 auto;
   padding: 0 16px;
-  height: 44px;
+  height: 40px;
   border-radius: 12px;
   border: 1px solid rgba(123, 175, 32, 0.45);
   background: linear-gradient(180deg, #d6f84e, var(--green));
@@ -4818,8 +4931,8 @@ img {
 .ocard-counter-send:disabled { opacity: 0.5; cursor: not-allowed; }
 .ocard-counter-cancel {
   flex: 0 0 auto;
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
