@@ -1,9 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { Avatar } from '../../components/Avatar';
 import { Icon } from '../../components/Icon';
 import { Modal } from '../../components/Modal';
-import { StatusBadge } from '../../components/StatusBadge';
 import { imageSrc } from '../../data/images';
 import { getUser } from '../../services/catalogService';
 import { useAppData } from '../../store/appData';
