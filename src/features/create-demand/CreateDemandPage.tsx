@@ -134,12 +134,6 @@ export function CreateDemandPage() {
         }
       />
 
-      <img
-        src="/create-banner.png"
-        alt="Ücretsiz! — Talebini aç — Satıcılar sana sunum yapsın — Son kararı sen ver."
-        className="create-banner-img"
-      />
-
       <div className="create-cols">
         <div className="create-form">
           {/* 1. Ne arıyorsun? */}
