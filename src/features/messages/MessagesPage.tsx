@@ -176,11 +176,9 @@ export function MessagesPage() {
             </div>
           ) : showActions ? (
             <div className="ocard-actions">
-              {iAmBuyer ? (
-                <button className="ocard-btn ocard-btn--accept" type="button" onClick={() => acceptOffer(offer!.id, me.id)}>
-                  <Icon name="Check" size={16} /> Kabul Et
-                </button>
-              ) : null}
+              <button className="ocard-btn ocard-btn--accept" type="button" onClick={() => acceptOffer(offer!.id, me.id)}>
+                <Icon name="Check" size={16} /> Kabul Et
+              </button>
               <button className="ocard-btn ocard-btn--counter" type="button" onClick={openCounter}>
                 <Icon name="ArrowLeftRight" size={16} /> Pazarlık
               </button>

@@ -50,6 +50,14 @@ function read<T>(key: string, fallback: T): T {
   }
 }
 
+function write(key: string, value: unknown) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch (error) {
+    console.error(`localStorage.setItem(${key}) başarısız oldu (kota dolu olabilir):`, error);
+  }
+}
+
 function genId() {
   return Date.now().toString(36) + Math.floor(Math.random() * 1e6).toString(36);
 }
@@ -160,15 +168,15 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<AppNotification[]>(() => read(LS.notifications, []));
   const [creditDeltas, setCreditDeltas] = useState<Record<string, number>>(() => read(LS.creditDeltas, {}));
 
-  useEffect(() => void localStorage.setItem(LS.demands, JSON.stringify(userDemands)), [userDemands]);
-  useEffect(() => void localStorage.setItem(LS.presentations, JSON.stringify(userPresentations)), [userPresentations]);
-  useEffect(() => void localStorage.setItem(LS.presentationPatches, JSON.stringify(presentationPatches)), [presentationPatches]);
-  useEffect(() => void localStorage.setItem(LS.offers, JSON.stringify(offers)), [offers]);
-  useEffect(() => void localStorage.setItem(LS.deals, JSON.stringify(deals)), [deals]);
-  useEffect(() => void localStorage.setItem(LS.threads, JSON.stringify(threads)), [threads]);
-  useEffect(() => void localStorage.setItem(LS.messages, JSON.stringify(messages)), [messages]);
-  useEffect(() => void localStorage.setItem(LS.notifications, JSON.stringify(notifications)), [notifications]);
-  useEffect(() => void localStorage.setItem(LS.creditDeltas, JSON.stringify(creditDeltas)), [creditDeltas]);
+  useEffect(() => write(LS.demands, userDemands), [userDemands]);
+  useEffect(() => write(LS.presentations, userPresentations), [userPresentations]);
+  useEffect(() => write(LS.presentationPatches, presentationPatches), [presentationPatches]);
+  useEffect(() => write(LS.offers, offers), [offers]);
+  useEffect(() => write(LS.deals, deals), [deals]);
+  useEffect(() => write(LS.threads, threads), [threads]);
+  useEffect(() => write(LS.messages, messages), [messages]);
+  useEffect(() => write(LS.notifications, notifications), [notifications]);
+  useEffect(() => write(LS.creditDeltas, creditDeltas), [creditDeltas]);
 
   const demands: Demand[] = [...userDemands, ...seedDemands];
   const presentations: Presentation[] = [...seedPresentations, ...userPresentations].map((p) =>
@@ -284,7 +292,12 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       };
       setUserPresentations((prev) => [presentation, ...prev]);
       if (demand) {
-        notify(demand.ownerId, 'presentation', `${nameOf(input.sellerId)} talebine ürün sundu`, `/ilan/${demandSlug(demand)}`);
+        notify(
+          demand.ownerId,
+          'presentation',
+          `${nameOf(input.sellerId)} talebine ürün sundu`,
+          `/ilan/${demandSlug(demand)}/sunum/${presentation.id}`,
+        );
       }
       return presentation;
     },
@@ -294,12 +307,11 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       const demand = pres && demands.find((d) => d.id === pres.demandId);
       if (!pres || !demand) return;
       patchPresentation(presentationId, { status: 'offer_requested' });
-      const sellerName = findUser(pres.sellerId)?.username ?? pres.sellerId;
       notify(
         pres.sellerId,
         'approved',
         `${nameOf(demand.ownerId)} sunumunu beğendi — senden resmi teklif istiyor`,
-        `/ilan/${demandSlug(demand)}/sunum/${sellerName}`,
+        `/ilan/${demandSlug(demand)}/sunum/${pres.id}`,
       );
     },
 

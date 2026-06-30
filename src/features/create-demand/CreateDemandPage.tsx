@@ -77,7 +77,7 @@ export function CreateDemandPage() {
   async function onPickFiles(event: ChangeEvent<HTMLInputElement>) {
     const files = event.target.files;
     if (!files?.length) return;
-    const urls = await filesToDataUrls(files, { maxDim: 1200 });
+    const urls = await filesToDataUrls(files, { maxDim: 700, quality: 0.6 });
     setPhotos((prev) => [...prev, ...urls].slice(0, 10));
     event.target.value = '';
   }
@@ -136,6 +136,21 @@ export function CreateDemandPage() {
 
       <div className="create-cols">
         <div className="create-form">
+          {/* 0. Kategori */}
+          <div className="field-label">Kategori</div>
+          <div className="card-block chip-row chip-row-scroll">
+            {categories.map((cat) => (
+              <button
+                key={cat.id}
+                type="button"
+                className={`chip${cat.id === categoryId ? ' active' : ''}`}
+                onClick={() => setCategoryId(cat.id)}
+              >
+                <Icon name={cat.icon as IconName} size={15} /> {cat.shortName}
+              </button>
+            ))}
+          </div>
+
           {/* 1. Ne arıyorsun? */}
           <div className="field-label">Ne arıyorsun?</div>
           <div className="card-block stack">
@@ -149,44 +164,25 @@ export function CreateDemandPage() {
             </div>
           </div>
 
-          {/* 2. Fiyat | Kategori */}
-          <div className="city-price">
-            <div className="cp-col">
-              <div className="field-label">Fiyat</div>
-              <div className="card-block">
-                <div className="field-input">
-                  <span className="fic-tl">₺</span>
-                  <input
-                    value={price || ''}
-                    onChange={(e) => setPrice(Number(e.target.value.replace(/[^0-9]/g, '')) || 0)}
-                    inputMode="numeric"
-                    placeholder="Hedef fiyat giriniz"
-                  />
-                </div>
-              </div>
-              <div className="preset-row">
-                {PRESETS.map(([label, value]) => (
-                  <button key={value} type="button" className={`preset${price === value ? ' on' : ''}`} onClick={() => setPrice(value)}>
-                    {label}
-                  </button>
-                ))}
-              </div>
+          {/* 2. Fiyat */}
+          <div className="field-label">Fiyat</div>
+          <div className="card-block">
+            <div className="field-input">
+              <span className="fic-tl">₺</span>
+              <input
+                value={price || ''}
+                onChange={(e) => setPrice(Number(e.target.value.replace(/[^0-9]/g, '')) || 0)}
+                inputMode="numeric"
+                placeholder="Hedef fiyat giriniz"
+              />
             </div>
-            <div className="cp-col">
-              <div className="field-label">Kategori</div>
-              <div className="card-block chip-row">
-                {categories.map((cat) => (
-                  <button
-                    key={cat.id}
-                    type="button"
-                    className={`chip${cat.id === categoryId ? ' active' : ''}`}
-                    onClick={() => setCategoryId(cat.id)}
-                  >
-                    <Icon name={cat.icon as IconName} size={15} /> {cat.shortName}
-                  </button>
-                ))}
-              </div>
-            </div>
+          </div>
+          <div className="preset-row">
+            {PRESETS.map(([label, value]) => (
+              <button key={value} type="button" className={`preset${price === value ? ' on' : ''}`} onClick={() => setPrice(value)}>
+                {label}
+              </button>
+            ))}
           </div>
 
           {/* 3. Marka | Model */}
@@ -201,6 +197,7 @@ export function CreateDemandPage() {
                     style={{ border: 'none', outline: 'none', background: 'transparent', flex: 1, font: 'inherit', cursor: 'text' }}
                     value={brand}
                     onChange={(e) => setBrand(e.target.value)}
+                    maxLength={26}
                     placeholder="Örn. Leica, Nike…"
                   />
                 </div>
@@ -216,6 +213,7 @@ export function CreateDemandPage() {
                     style={{ border: 'none', outline: 'none', background: 'transparent', flex: 1, font: 'inherit', cursor: 'text' }}
                     value={model}
                     onChange={(e) => setModel(e.target.value)}
+                    maxLength={26}
                     placeholder="Örn. M6, Air Max 90…"
                   />
                 </div>

@@ -28,6 +28,7 @@ export function DemandDetailPage() {
   const { getDemandByRoute, getDemandPresentations, getDemandOffers, createPresentation } = useAppData();
   const demand = getDemandByRoute(demandSlug);
   const [activeImage, setActiveImage] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   const [presenting, setPresenting] = useState(false);
   const [presentPhotos, setPresentPhotos] = useState<string[]>([]);
   const [presentVideos, setPresentVideos] = useState<string[]>([]);
@@ -64,7 +65,7 @@ export function DemandDetailPage() {
   async function onPickPresentFiles(event: ChangeEvent<HTMLInputElement>) {
     const files = event.target.files;
     if (!files?.length) return;
-    const urls = await filesToDataUrls(files, { maxDim: 1400 });
+    const urls = await filesToDataUrls(files, { maxDim: 900, quality: 0.7 });
     setPresentPhotos((prev) => [...prev, ...urls].slice(0, MAX_PHOTOS));
     event.target.value = '';
   }
@@ -117,7 +118,11 @@ export function DemandDetailPage() {
           <div className="detail-media-slots">
             <div className="detail-photo-main">
               {images[safeIndex] ? (
-                <img src={imageSrc(images[safeIndex], 800)} alt={demand.title} />
+                <img
+                  src={imageSrc(images[safeIndex], 800)}
+                  alt={demand.title}
+                  onClick={() => setLightboxOpen(true)}
+                />
               ) : (
                 <div className="detail-photo-main-empty"><Icon name="Camera" size={32} /></div>
               )}
@@ -166,13 +171,9 @@ export function DemandDetailPage() {
             <h1 className="detail-title">{demand.title}</h1>
           </section>
 
-          <section className="detail-price-pill">
-            <div className="detail-price-pill-top">
-              <span className="detail-price-pill-label">Fiyat</span>
-            </div>
-            <div className="detail-price-pill-bottom">
-              <div className="detail-price-pill-value">{formatPrice(demand.price)}</div>
-            </div>
+          <section className="detail-info-card">
+            <span className="detail-box-label">Fiyat</span>
+            <div className="detail-price-value">{formatPrice(demand.price)}</div>
           </section>
 
           <section className="detail-spec-card">
@@ -407,6 +408,15 @@ export function DemandDetailPage() {
           </label>
         </div>
       </Modal>
+
+      {lightboxOpen && images[safeIndex] ? (
+        <div className="detail-photo-lightbox" onClick={() => setLightboxOpen(false)}>
+          <button type="button" className="detail-photo-lightbox-x" onClick={() => setLightboxOpen(false)}>
+            <Icon name="X" size={18} />
+          </button>
+          <img src={imageSrc(images[safeIndex], 1600)} alt={demand.title} />
+        </div>
+      ) : null}
     </div>
   );
 }

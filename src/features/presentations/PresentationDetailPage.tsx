@@ -16,6 +16,7 @@ export function PresentationDetailPage() {
   const routeUser = getUser(username);
   const navigate = useNavigate();
   const [offering, setOffering] = useState(false);
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
   const [offerPrice, setOfferPrice] = useState(0);
   const [offerNote, setOfferNote] = useState('');
   const { getDemandByRoute, getPresentation, requestOffer, rejectPresentation, sendOffer, creditsOf, getOfferForPresentation, findThread } =
@@ -72,22 +73,34 @@ export function PresentationDetailPage() {
 
       <section className="presentation-layout">
         <div className="presentation-media">
-          <img className="presentation-cover" src={imageSrc(presentation.coverImage, 1120)} alt={demand.title} />
+          <img
+            className="presentation-cover"
+            src={imageSrc(presentation.coverImage, 1120)}
+            alt={demand.title}
+            onClick={() => setLightboxSrc(presentation.coverImage)}
+          />
           <div className="media-strip">
             {presentation.images.map((imageId, index) => (
-              <img key={index} src={imageSrc(imageId, 220)} alt="" />
+              <img
+                key={index}
+                src={imageSrc(imageId, 220)}
+                alt=""
+                onClick={() => setLightboxSrc(imageId)}
+                style={{ cursor: 'zoom-in' }}
+              />
             ))}
           </div>
         </div>
 
         <div className="presentation-content">
-          <span className="pres-page-title">Ürün Sunumu</span>
-          <hr className="pres-page-title-divider" />
+          <span className="pres-page-eyebrow">Ürün Sunumu</span>
           <h1>{demand.title}</h1>
-          <hr className="pres-page-title-divider" />
           <p>{presentation.description}</p>
-
-
+          <div className="pres-condition-chip">
+            <Icon name="PackageCheck" size={14} />
+            <span>Ürün durumu:</span>
+            <strong>{presentation.condition}</strong>
+          </div>
         </div>
 
         <aside className="action-panel">
@@ -101,13 +114,9 @@ export function PresentationDetailPage() {
               </div>
             </div>
           </div>
-          <section className="detail-price-pill">
-            <div className="detail-price-pill-top">
-              <span className="detail-price-pill-label">Alıcının Ortalama Fiyat Beklentisi</span>
-            </div>
-            <div className="detail-price-pill-bottom">
-              <div className="detail-price-pill-value">{formatPrice(demand.price)}</div>
-            </div>
+          <section className="pres-price-box">
+            <span className="pres-price-box-label">Alıcının fiyat beklentisi</span>
+            <div className="pres-price-box-value">{formatPrice(demand.price)}</div>
           </section>
 
           {isBuyer && status === 'submitted' ? (
@@ -209,6 +218,15 @@ export function PresentationDetailPage() {
           </label>
         </div>
       </Modal>
+
+      {lightboxSrc ? (
+        <div className="detail-photo-lightbox" onClick={() => setLightboxSrc(null)}>
+          <button type="button" className="detail-photo-lightbox-x" onClick={() => setLightboxSrc(null)}>
+            <Icon name="X" size={18} />
+          </button>
+          <img src={imageSrc(lightboxSrc, 1600)} alt={demand.title} />
+        </div>
+      ) : null}
     </div>
   );
 }
