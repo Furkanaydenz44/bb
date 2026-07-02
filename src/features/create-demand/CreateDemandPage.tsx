@@ -280,7 +280,7 @@ export function CreateDemandPage() {
                     <button type="button" className="city-backdrop" aria-label="Kapat" onClick={() => setDefectOpen(false)} />
                     <div className="city-panel">
                       <div className="city-list">
-                        {['Evet', 'Hayır'].map((opt) => (
+                        {['Var', 'Yok'].map((opt) => (
                           <button key={opt} type="button" className={`city-opt${hasDefect === opt ? ' sel' : ''}`} onClick={() => { setHasDefect(opt); setDefectOpen(false); }}>
                             {opt}
                           </button>

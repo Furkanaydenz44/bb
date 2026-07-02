@@ -7,7 +7,6 @@ import { StatusBadge } from '../../components/StatusBadge';
 import { imageSrc } from '../../data/images';
 import { getUser } from '../../services/catalogService';
 import { useAppData } from '../../store/appData';
-import { offerCreditCost } from '../../lib/credits';
 import { demandPath, userBase } from '../../utils/routes';
 import { formatPrice } from '../../utils/format';
 
@@ -17,10 +16,21 @@ export function PresentationDetailPage() {
   const navigate = useNavigate();
   const [offering, setOffering] = useState(false);
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
+  const [activeIdx, setActiveIdx] = useState(0);
   const [offerPrice, setOfferPrice] = useState(0);
   const [offerNote, setOfferNote] = useState('');
-  const { getDemandByRoute, getPresentation, requestOffer, rejectPresentation, sendOffer, creditsOf, getOfferForPresentation, findThread } =
-    useAppData();
+  const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
+  const {
+    getDemandByRoute,
+    getPresentation,
+    requestOffer,
+    rejectPresentation,
+    cancelPresentation,
+    sendOffer,
+    getOfferForPresentation,
+    getDealForPresentation,
+    findThread,
+  } = useAppData();
   const demand = getDemandByRoute(demandSlug);
   const presentation = getPresentation(presentationId.replace(/^@/, ''));
 
@@ -37,7 +47,6 @@ export function PresentationDetailPage() {
     );
   }
 
-  const buyer = getUser(demand.ownerId);
   const seller = getUser(presentation.sellerId);
   const isBuyer = routeUser.id === demand.ownerId;
   const isSeller = routeUser.id === presentation.sellerId;
@@ -46,8 +55,8 @@ export function PresentationDetailPage() {
   const messagesBase = `${userBase(routeUser.username)}/mesajlar`;
 
   const offer = getOfferForPresentation(presentation.id);
-  const cost = offerCreditCost(demand, buyer.score);
-  const balance = creditsOf(routeUser.id);
+  const dealForPres = getDealForPresentation(presentation.id);
+  const canCancel = isSeller && !dealForPres;
 
   function submitOffer() {
     if (!presentation || offerPrice <= 0) return;
@@ -57,6 +66,13 @@ export function PresentationDetailPage() {
     if (created) navigate(`${messagesBase}/${created.id}`);
   }
 
+  function confirmCancelPresentation() {
+    if (!demand || !presentation) return;
+    const removed = cancelPresentation(presentation.id, routeUser.id);
+    setCancelConfirmOpen(false);
+    if (removed) navigate(demandPath(routeUser.username, demand));
+  }
+
   return (
     <div className="page-stack">
       <div className="detail-topline">
@@ -64,32 +80,38 @@ export function PresentationDetailPage() {
           <Icon name="ArrowLeft" size={17} />
           Talebe dön
         </Link>
-        <div className="breadcrumb-lite">
-          <Link to={userBase(routeUser.username)}>@{buyer.username}</Link>
-          <span>/ sunum /</span>
-          <Link to={userBase(routeUser.username)}>@{seller.username}</Link>
-        </div>
       </div>
 
       <section className="presentation-layout">
         <div className="presentation-media">
-          <img
-            className="presentation-cover"
-            src={imageSrc(presentation.coverImage, 1120)}
-            alt={demand.title}
-            onClick={() => setLightboxSrc(presentation.coverImage)}
-          />
-          <div className="media-strip">
-            {presentation.images.map((imageId, index) => (
-              <img
-                key={index}
-                src={imageSrc(imageId, 220)}
-                alt=""
-                onClick={() => setLightboxSrc(imageId)}
-                style={{ cursor: 'zoom-in' }}
-              />
-            ))}
-          </div>
+          {(() => {
+            const allImages = Array.from(new Set([presentation.coverImage, ...presentation.images]));
+            const safeIdx = Math.min(activeIdx, allImages.length - 1);
+            return (
+              <>
+                <img
+                  className="presentation-cover"
+                  src={imageSrc(allImages[safeIdx], 1120)}
+                  alt={demand.title}
+                  onClick={() => setLightboxSrc(allImages[safeIdx])}
+                  style={{ cursor: 'zoom-in' }}
+                />
+                {allImages.length > 1 && (
+                  <div className="media-strip">
+                    {allImages.map((imageId, index) => (
+                      <img
+                        key={index}
+                        src={imageSrc(imageId, 220)}
+                        alt=""
+                        onClick={() => setActiveIdx(index)}
+                        style={{ cursor: 'pointer', outline: index === safeIdx ? '2px solid var(--primary)' : 'none', borderRadius: 4 }}
+                      />
+                    ))}
+                  </div>
+                )}
+              </>
+            );
+          })()}
         </div>
 
         <div className="presentation-content">
@@ -100,6 +122,21 @@ export function PresentationDetailPage() {
             <Icon name="PackageCheck" size={14} />
             <span>Ürün durumu:</span>
             <strong>{presentation.condition}</strong>
+          </div>
+          <div className="pres-condition-chip">
+            <Icon name="Calendar" size={14} />
+            <span>Yıl:</span>
+            <strong>{presentation.year ?? '—'}</strong>
+          </div>
+          <div className="pres-condition-chip">
+            <Icon name="Eye" size={14} />
+            <span>Renk:</span>
+            <strong>{presentation.color ?? '—'}</strong>
+          </div>
+          <div className="pres-condition-chip">
+            <Icon name="Eye" size={14} />
+            <span>Ürün defosu:</span>
+            <strong>{presentation.hasDefect ?? '—'}</strong>
           </div>
         </div>
 
@@ -125,7 +162,14 @@ export function PresentationDetailPage() {
                 <Icon name="Handshake" size={17} />
                 Teklif İste
               </button>
-              <button className="button ghost wide" type="button" onClick={() => rejectPresentation(presentation.id, routeUser.id)}>
+              <button
+                className="button ghost wide"
+                type="button"
+                onClick={() => {
+                  rejectPresentation(presentation.id, routeUser.id);
+                  navigate(demandPath(routeUser.username, demand));
+                }}
+              >
                 <Icon name="X" size={17} />
                 Reddet
               </button>
@@ -143,24 +187,18 @@ export function PresentationDetailPage() {
               <button
                 className="button primary wide"
                 type="button"
-                disabled={balance < cost}
                 onClick={() => {
                   setOfferPrice(demand.price);
                   setOffering(true);
                 }}
               >
                 <Icon name="Handshake" size={17} />
-                Resmi Teklif Ver · {cost} kredi
+                Resmi Teklif Ver
               </button>
               <div className="pres-offer-requested-badge">
                 <span className="pres-offer-dot" />
                 Alıcı sunumu beğendi ve teklif talep etti
               </div>
-              <p style={{ margin: 0, fontSize: 12.5, lineHeight: 1.5, color: balance < cost ? '#b5462e' : 'var(--muted)' }}>
-                {balance < cost
-                  ? `Kredin yetersiz (${balance}/${cost}). Kredi yalnız ilk teklifte ödenir; pazarlık ücretsiz.`
-                  : `Bakiyen ${balance} kredi. Teklif maliyeti ${cost} kredi (ilanda 1 kez); revize/pazarlık ücretsiz.`}
-              </p>
             </>
           ) : null}
 
@@ -173,12 +211,15 @@ export function PresentationDetailPage() {
 
           {isSeller && status === 'submitted' ? (
             <p style={{ margin: 0, fontSize: 12.5, lineHeight: 1.5, color: 'var(--muted)' }}>
-              Sunumun iletildi. Alıcı teklif isterse, krediyle resmi teklifini verirsin ve sohbet açılır.
+              Sunumun iletildi. Alıcı teklif isterse, resmi teklifini verirsin ve sohbet açılır.
             </p>
           ) : null}
 
-          {status === 'rejected' ? (
-            <p style={{ margin: 0, fontSize: 12.5, lineHeight: 1.5, color: 'var(--muted)' }}>Alıcı bu sunumu beğenmedi.</p>
+          {canCancel ? (
+            <button type="button" className="button ghost wide pres-cancel-btn" onClick={() => setCancelConfirmOpen(true)}>
+              <Icon name="X" size={17} />
+              Sunumu İptal Et
+            </button>
           ) : null}
 
         </aside>
@@ -194,14 +235,14 @@ export function PresentationDetailPage() {
               Vazgeç
             </button>
             <button type="button" className="button primary" disabled={offerPrice <= 0} onClick={submitOffer}>
-              <Icon name="Handshake" size={16} /> Teklif Gönder · {cost} kredi
+              <Icon name="Handshake" size={16} /> Teklif Gönder
             </button>
           </>
         }
       >
         <div className="present-form">
           <p style={{ margin: 0, fontSize: 13, lineHeight: 1.5, color: 'var(--muted)' }}>
-            Alıcının ilan fiyatı <b style={{ color: 'var(--ink)' }}>{formatPrice(demand.price)}</b>. Resmi teklifini gir — bu bedel <b style={{ color: 'var(--ink)' }}>{cost} kredi</b> (yalnız ilk teklifte; pazarlık ücretsiz). Bakiyen: {balance} kredi.
+            Alıcının ilan fiyatı <b style={{ color: 'var(--ink)' }}>{formatPrice(demand.price)}</b>. Resmi teklifini gir — pazarlık ücretsizdir.
           </p>
           <label className="present-field">
             <span>Teklif fiyatı (₺)</span>
@@ -227,6 +268,24 @@ export function PresentationDetailPage() {
           <img src={imageSrc(lightboxSrc, 1600)} alt={demand.title} />
         </div>
       ) : null}
+
+      <Modal
+        open={cancelConfirmOpen}
+        onClose={() => setCancelConfirmOpen(false)}
+        title="Sunumu iptal et"
+        footer={
+          <>
+            <button type="button" className="button ghost" onClick={() => setCancelConfirmOpen(false)}>
+              Vazgeç
+            </button>
+            <button type="button" className="button danger" onClick={confirmCancelPresentation}>
+              Evet, iptal et
+            </button>
+          </>
+        }
+      >
+        <p>Bu sunumu iptal etmek üzeresin. Bu işlem geri alınamaz ve sunum kaldırılır.</p>
+      </Modal>
     </div>
   );
 }

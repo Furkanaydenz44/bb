@@ -3,10 +3,12 @@ import { Icon, type IconName } from '../../components/Icon';
 import { PageHeader } from '../../components/PageHeader';
 import { categories } from '../../data/categories';
 import { imageSrc, imageIds } from '../../data/images';
-import { getDemands, getUser } from '../../services/catalogService';
+import { getUser } from '../../services/catalogService';
+import { useAppData } from '../../store/appData';
 import { categoryPath, demandPath, userBase } from '../../utils/routes';
 import { formatPrice, locationLabel } from '../../utils/format';
 import { DemandCard } from './DemandCard';
+import { getTopCategories } from '../../services/browsingHistory';
 
 const categoryImages: Record<string, string> = {
   foto: imageIds.camera,
@@ -23,6 +25,7 @@ export function ExplorePage() {
   const [searchParams] = useSearchParams();
   const q = (searchParams.get('q') ?? '').trim();
   const activeUser = getUser(username);
+  const { getDemands } = useAppData();
   const demands = getDemands();
   const base = userBase(activeUser.username);
 
@@ -37,6 +40,17 @@ export function ExplorePage() {
     : [];
 
   const recentDemands = demands.slice(0, 4);
+
+  const topCategoryIds = getTopCategories(activeUser.id, 2);
+  const topCategoryNames = topCategoryIds
+    .map((id) => categories.find((c) => c.id === id)?.shortName)
+    .filter((name): name is string => Boolean(name));
+  const recommendedDemands = topCategoryIds.length
+    ? topCategoryIds
+        .flatMap((id) => demands.filter((d) => d.categoryId === id))
+        .filter((d, index, all) => all.findIndex((other) => other.id === d.id) === index)
+        .slice(0, 4)
+    : [];
 
   return (
     <div className="page-stack">
@@ -79,6 +93,23 @@ export function ExplorePage() {
         </>
       ) : (
         <>
+          {recommendedDemands.length > 0 && (
+            <>
+              {/* Sana Özel */}
+              <div className="section-heading">
+                <div>
+                  <h2>Sana Özel</h2>
+                  <p>{topCategoryNames.join(' ve ')} kategorilerinde gezindin — bunlar ilgini çekebilir.</p>
+                </div>
+              </div>
+              <section className="demand-grid">
+                {recommendedDemands.map((demand) => (
+                  <DemandCard key={demand.id} demand={demand} />
+                ))}
+              </section>
+            </>
+          )}
+
           {/* Kategoriler */}
           <div className="section-heading">
             <div>
@@ -122,26 +153,6 @@ export function ExplorePage() {
             {recentDemands.map((demand) => (
               <DemandCard key={demand.id} demand={demand} />
             ))}
-          </section>
-
-          {/* Araçlar */}
-          <div className="section-heading">
-            <div>
-              <h2>Araçlar</h2>
-              <p>Talebe sunum yapmadan önce kredi maliyetini hesapla.</p>
-            </div>
-          </div>
-          <section className="explore-tools">
-            <Link className="tool-row" to={`${base}/araclar/teklif-kredisi`}>
-              <Icon name="Calculator" size={18} />
-              <span>Teklif kredisi hesaplayıcı</span>
-              <Icon name="ChevronRight" size={16} />
-            </Link>
-            <Link className="tool-row" to={`${base}/kredi`}>
-              <Icon name="WalletCards" size={18} />
-              <span>Kredi paketleri</span>
-              <Icon name="ChevronRight" size={16} />
-            </Link>
           </section>
         </>
       )}

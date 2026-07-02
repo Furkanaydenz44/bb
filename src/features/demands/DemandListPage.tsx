@@ -1,12 +1,12 @@
-import { Link, useParams, useSearchParams } from 'react-router-dom';
-import { Icon } from '../../components/Icon';
+import { useEffect } from 'react';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { PageHeader } from '../../components/PageHeader';
 import { getCategory, getUser } from '../../services/catalogService';
-import { userBase } from '../../utils/routes';
 import { DemandCard } from './DemandCard';
 import { useAppData } from '../../store/appData';
 import { categoryGroups } from '../../data/categories';
 import type { CategoryId } from '../../data/types';
+import { recordCategoryView } from '../../services/browsingHistory';
 
 export function DemandListPage() {
   const { username = '@ahmetsafak', categoryId } = useParams();
@@ -15,8 +15,11 @@ export function DemandListPage() {
   const activeUser = getUser(username);
   const { getDemands } = useAppData();
   const activeCategory = getCategory(categoryId);
-  const base = userBase(activeUser.username);
   const allDemands = getDemands(categoryId);
+
+  useEffect(() => {
+    if (activeCategory) recordCategoryView(activeUser.id, activeCategory.id);
+  }, [activeCategory, activeUser.id]);
 
   // Grup modu: gruptaki tüm öğeleri metin eşleşmesiyle tara
   const groupData = categoryId && groupParam
@@ -45,17 +48,7 @@ export function DemandListPage() {
 
   return (
     <div className="page-stack">
-      <PageHeader
-        title={pageTitle}
-        className="page-header-lime"
-        description=""
-        actions={
-          <Link className="button ghost" to={`${base}/araclar/teklif-kredisi`}>
-            <Icon name="Calculator" size={17} />
-            Kredi Hesapla
-          </Link>
-        }
-      />
+      <PageHeader title={pageTitle} className="page-header-lime" description="" />
 
       <div className="section-heading">
         <div>

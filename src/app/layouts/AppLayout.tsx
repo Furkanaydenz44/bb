@@ -7,10 +7,15 @@ import { useAppData } from '../../store/appData';
 import { categories, categoryGroups } from '../../data/categories';
 import { categoryPath, userBase } from '../../utils/routes';
 
-const primaryNav: Array<{ label: string; icon: IconName; path: string }> = [
+const navBeforeCategories: Array<{ label: string; icon: IconName; path: string }> = [
+  { label: 'Talep Aç', icon: 'Plus', path: 'talep-ac' },
   { label: 'Talepler', icon: 'Home', path: '' },
   { label: 'Keşfet', icon: 'Search', path: 'kesfet' },
-  { label: 'Talep Aç', icon: 'Plus', path: 'talep-ac' },
+];
+
+const navAfterCategories: Array<{ label: string; icon: IconName; path: string }> = [
+  { label: 'Sunumlarım', icon: 'Send', path: 'sunumlarim' },
+  { label: 'Taleplerim', icon: 'ListChecks', path: 'taleplerim' },
 ];
 
 export function AppLayout() {
@@ -23,7 +28,7 @@ export function AppLayout() {
   const [activeCat, setActiveCat] = useState(categories[0].id);
   const catTriggerRef = useRef<HTMLButtonElement>(null);
   const session = getCurrentUser();
-  const { creditsOf, unreadCount, getUserNotifications, markNotificationsRead } = useAppData();
+  const { unreadCount, getUserNotifications, markNotificationsRead, deleteNotification } = useAppData();
 
   // Giriş yoksa giriş ekranına; URL başka bir kullanıcıyı gösteriyorsa kendi alanına döndür.
   if (!session) return <Navigate to="/giris" replace />;
@@ -34,7 +39,6 @@ export function AppLayout() {
   const activeUser = session;
   const base = userBase(activeUser.username);
   const accounts = getAllUsers();
-  const credits = creditsOf(activeUser.id);
   const unread = unreadCount(activeUser.id);
   const notifs = getUserNotifications(activeUser.id).slice(0, 10);
 
@@ -99,6 +103,18 @@ export function AppLayout() {
                         >
                           <span className="notif-dot" />
                           <span className="notif-text">{n.text}</span>
+                          <button
+                            type="button"
+                            className="notif-delete"
+                            aria-label="Bildirimi sil"
+                            onClick={(event) => {
+                              event.preventDefault();
+                              event.stopPropagation();
+                              deleteNotification(n.id);
+                            }}
+                          >
+                            <Icon name="X" size={28} strokeWidth={2.75} />
+                          </button>
                         </NavLink>
                       ))
                     ) : (
@@ -128,11 +144,6 @@ export function AppLayout() {
                         <small>@{activeUser.username}</small>
                       </div>
                     </div>
-                    <NavLink className="acct-credit-row" to={`${base}/kredi`} onClick={() => setMenuOpen(false)}>
-                      <Icon name="WalletCards" size={15} />
-                      <span>{credits} kredi</span>
-                      <Icon name="ChevronRight" size={14} />
-                    </NavLink>
                     <NavLink className="acct-menu-link" to={`${base}/profil`} onClick={() => setMenuOpen(false)}>
                       <Icon name="User" size={15} />
                       <span>Profil</span>
@@ -165,6 +176,20 @@ export function AppLayout() {
         </div>
 
         <nav className="topbar2-nav" aria-label="Ana menü">
+          {navBeforeCategories.map((item) => (
+            <NavLink
+              key={item.path || 'home'}
+              to={item.path ? `${base}/${item.path}` : base}
+              end={item.path === ''}
+              className={({ isActive }) =>
+                `topnav-link${item.path === '' ? ' topnav-talepler' : ''}${item.path === 'talep-ac' ? ' topnav-cta' : ''}${isActive ? ' active' : ''}`
+              }
+            >
+              <Icon name={item.icon} size={17} />
+              {item.label}
+            </NavLink>
+          ))}
+
           <div
             className="cat-mega-wrap"
             onMouseEnter={() => setCatOpen(true)}
@@ -237,13 +262,12 @@ export function AppLayout() {
             )}
           </div>
 
-          {primaryNav.map((item) => (
+          {navAfterCategories.map((item) => (
             <NavLink
-              key={item.path || 'home'}
-              to={item.path ? `${base}/${item.path}` : base}
-              end={item.path === ''}
+              key={item.path}
+              to={`${base}/${item.path}`}
               className={({ isActive }) =>
-                `topnav-link${item.path === '' ? ' topnav-talepler' : ''}${item.path === 'talep-ac' ? ' topnav-cta' : ''}${isActive ? ' active' : ''}`
+                `topnav-link${item.path === 'taleplerim' ? ' topnav-taleplerim' : ''}${item.path === 'sunumlarim' ? ' topnav-sunumlarim' : ''}${isActive ? ' active' : ''}`
               }
             >
               <Icon name={item.icon} size={17} />

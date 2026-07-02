@@ -44,7 +44,7 @@ export function LoginPage() {
               <span className="auth-acc-copy">
                 <b>{user.name}</b>
                 <small>
-                  @{user.username} · {user.city} · {user.credits} kredi
+                  @{user.username} · {user.city}
                 </small>
               </span>
               <Icon name="ChevronRight" size={16} />

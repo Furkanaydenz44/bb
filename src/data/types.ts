@@ -10,8 +10,8 @@ export type CategoryId =
   | 'teknoloji'
   | 'oto';
 
-// Sunum: satıcı görselleri gönderir -> alıcı TEKLİF İSTER veya reddeder.
-export type PresentationStatus = 'submitted' | 'offer_requested' | 'rejected';
+// Sunum: satıcı görselleri gönderir -> alıcı TEKLİF İSTER veya reddeder (reddedilen sunum silinir).
+export type PresentationStatus = 'submitted' | 'offer_requested';
 // Teklif: satıcı resmi teklif verir -> pazarlık -> anlaşma.
 export type OfferStatus = 'pending' | 'countered' | 'accepted' | 'rejected';
 // Anlaşma sonrası teslimat.
@@ -23,7 +23,6 @@ export interface User {
   name: string;
   avatar: string;
   city: string;
-  credits: number;
   score: number;
   reviews: number;
   sales: number;
@@ -51,6 +50,9 @@ export interface Presentation {
   description: string;
   status: PresentationStatus;
   createdAt?: number;
+  year?: string;
+  color?: string;
+  hasDefect?: string;
 }
 
 export interface OfferEvent {
@@ -70,7 +72,6 @@ export interface Offer {
   note?: string;
   delivery?: string;
   status: OfferStatus;
-  creditCost?: number;
   createdAt: number;
   history: OfferEvent[];
 }

@@ -1,14 +1,16 @@
-import { useRef, useState, type ChangeEvent } from 'react';
+import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Avatar } from '../../components/Avatar';
 import { Icon, type IconName } from '../../components/Icon';
 import { Modal } from '../../components/Modal';
 import { imageSrc } from '../../data/images';
 import { filesToDataUrls } from '../../lib/imageUpload';
-import { getCategory, getUser, offerCreditEstimate } from '../../services/catalogService';
-import { categoryPath, demandPath, presentationPath, userBase } from '../../utils/routes';
+import { getCategory, getUser } from '../../services/catalogService';
+import { categoryPath, demandPath, demandPresentationsPath, presentationPath, userBase } from '../../utils/routes';
 import { StatusBadge } from '../../components/StatusBadge';
 import { formatPrice, locationLabel } from '../../utils/format';
 import { useAppData } from '../../store/appData';
+import { recordCategoryView } from '../../services/browsingHistory';
 
 const TRUST_ITEMS: Array<{ icon: IconName; title: string; copy: string }> = [
   { icon: 'ShieldCheck', title: 'Sistem içi teklif', copy: 'Fiyat, pazarlık ve onay akışı kayıt altında ilerler.' },
@@ -17,6 +19,8 @@ const TRUST_ITEMS: Array<{ icon: IconName; title: string; copy: string }> = [
 ];
 
 const CONDITIONS = ['Sıfır (yeni)', 'Etiketli', 'Az kullanılmış', 'İkinci el · iyi durumda', 'İkinci el'];
+const COLORS = ['Siyah', 'Beyaz', 'Gri', 'Gümüş', 'Altın', 'Kırmızı', 'Mavi', 'Yeşil', 'Sarı', 'Turuncu', 'Mor', 'Pembe', 'Kahverengi', 'Bej', 'Lacivert'];
+const DEFECT_OPTIONS = ['Var', 'Yok'];
 const MIN_PHOTOS = 3;
 const MAX_PHOTOS = 10;
 const NOTE_MIN = 10;
@@ -25,7 +29,8 @@ const NOTE_MAX = 250;
 export function DemandDetailPage() {
   const { username = '@ahmetsafak', demandSlug = '' } = useParams();
   const routeUser = getUser(username);
-  const { getDemandByRoute, getDemandPresentations, getDemandOffers, createPresentation } = useAppData();
+  const navigate = useNavigate();
+  const { getDemandByRoute, getDemandPresentations, getDemandOffers, createPresentation, deleteDemand, deals } = useAppData();
   const demand = getDemandByRoute(demandSlug);
   const [activeImage, setActiveImage] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -34,8 +39,16 @@ export function DemandDetailPage() {
   const [presentVideos, setPresentVideos] = useState<string[]>([]);
   const [presentNote, setPresentNote] = useState('');
   const [presentCondition, setPresentCondition] = useState('İkinci el · iyi durumda');
+  const [presentYear, setPresentYear] = useState('');
+  const [presentColor, setPresentColor] = useState('');
+  const [presentDefect, setPresentDefect] = useState('');
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const presentFileRef = useRef<HTMLInputElement>(null);
   const presentVideoRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (demand) recordCategoryView(routeUser.id, demand.categoryId);
+  }, [demand, routeUser.id]);
 
   if (!demand) {
     return (
@@ -54,8 +67,9 @@ export function DemandDetailPage() {
   const category = getCategory(demand.categoryId);
   const presentations = getDemandPresentations(demand.id);
   const offers = getDemandOffers(demand.id);
-  const creditEstimate = offerCreditEstimate(demand.price, demand.categoryId);
   const isOwner = routeUser.id === demand.ownerId;
+  const demandDeals = deals.filter((d) => d.demandId === demand.id);
+  const hasActiveDeal = demandDeals.some((d) => d.status !== 'delivered');
   const visiblePresentations = isOwner ? presentations : presentations.filter((p) => p.sellerId === routeUser.id);
   const myPresentation = presentations.find((p) => p.sellerId === routeUser.id);
   const noteLen = presentNote.trim().length;
@@ -86,11 +100,24 @@ export function DemandDetailPage() {
       images: presentPhotos,
       description: presentNote,
       condition: presentCondition,
+      year: presentYear,
+      color: presentColor,
+      hasDefect: presentDefect,
     });
     setPresenting(false);
     setPresentPhotos([]);
     setPresentVideos([]);
     setPresentNote('');
+    setPresentYear('');
+    setPresentColor('');
+    setPresentDefect('');
+  }
+
+  function confirmDeleteDemand() {
+    if (!demand) return;
+    const removed = deleteDemand(demand.id, routeUser.id);
+    setDeleteConfirmOpen(false);
+    if (removed) navigate(`${userBase(routeUser.username)}/taleplerim`);
   }
 
   const images = Array.from(new Set([demand.coverImage, ...demand.referenceImages]));
@@ -102,14 +129,24 @@ export function DemandDetailPage() {
   return (
     <div className="page-stack">
       <div className="detail-topline">
-        <Link className="back-link" to={category ? categoryPath(routeUser.username, category.id) : userBase(routeUser.username)}>
-          <Icon name="ArrowLeft" size={17} />
-          Geri
-        </Link>
-        <div className="breadcrumb-lite">
-          <Link to={userBase(routeUser.username)}>@{owner.username}</Link>
-          <span>/</span>
-          <span>Talep</span>
+        <div className="detail-topline-left">
+          <Link className="back-link" to={category ? categoryPath(routeUser.username, category.id) : userBase(routeUser.username)}>
+            <Icon name="ArrowLeft" size={17} />
+            Geri
+          </Link>
+        </div>
+        <div className="detail-topline-right">
+          {isOwner && (
+            <Link className="pres-shortcut-btn" to={demandPresentationsPath(routeUser.username, demand)}>
+              <Icon name="Inbox" size={16} />
+              Sunumlar
+              {presentations.length > 0 && <span className="pres-list-count">{presentations.length}</span>}
+            </Link>
+          )}
+          <Link className="detail-owner-chip" to={userBase(owner.username)}>
+            <Avatar label={owner.avatar} size="sm" />
+            <span>@{owner.username}</span>
+          </Link>
         </div>
       </div>
 
@@ -181,15 +218,6 @@ export function DemandDetailPage() {
             <p className="detail-desc">{demand.description}</p>
           </section>
 
-          <section className="detail-assurance-card">
-            <h3>Bulbana güven akışı</h3>
-            <div className="detail-assurance-list">
-              <span><i>1</i> Sunum ücretsiz gönderilir</span>
-              <span><i>2</i> Alıcı beğenirse resmi teklif ister</span>
-              <span><i>3</i> Anlaşma sonrası kargo takibi açılır</span>
-            </div>
-          </section>
-
         </main>
 
         <aside className="detail-aside">
@@ -235,9 +263,15 @@ export function DemandDetailPage() {
 
             <div className="detail-cta">
               {isOwner ? (
-                <div className="detail-hint">
-                  Bu senin talebin. Satıcılar ürün sunduğunda <b>Teklif İste</b> diyebilirsin.
-                </div>
+                hasActiveDeal ? (
+                  <div className="detail-hint">
+                    <Icon name="LockKeyhole" size={14} /> Devam eden bir anlaşma olduğu için bu talep silinemez.
+                  </div>
+                ) : (
+                  <button type="button" className="detail-delete-btn" onClick={() => setDeleteConfirmOpen(true)}>
+                    <Icon name="X" size={16} /> Talebi Sil
+                  </button>
+                )
               ) : myPresentation ? (
                 <div className="detail-hint">
                   <b>Sunumun iletildi.</b> Alıcı beğenip <b>Teklif İste</b> derse resmi teklif verirsin.
@@ -252,61 +286,6 @@ export function DemandDetailPage() {
 
         </aside>
       </div>
-
-      {isOwner && (
-        <section className="pres-list-panel">
-          <h2 className="pres-list-title">
-            <Icon name="Inbox" size={20} />
-            Sunumlar
-            {presentations.length > 0 && (
-              <span className="pres-list-count">{presentations.length}</span>
-            )}
-          </h2>
-          {presentations.length === 0 ? (
-            <div className="pres-list-empty">
-              <Icon name="PackageOpen" size={28} />
-              <p>Henüz sunum yok. Satıcılar ürün sunduğunda burada görünür.</p>
-            </div>
-          ) : (
-            <div className="pres-list-grid">
-              {presentations.map((pres) => {
-                const seller = getUser(pres.sellerId);
-                const statusTone = pres.status === 'offer_requested' ? 'green' : pres.status === 'rejected' ? 'warning' : 'purple';
-                const statusLabel = pres.status === 'offer_requested' ? 'Teklif İstendi' : pres.status === 'rejected' ? 'Reddedildi' : 'İnceleniyor';
-                return (
-                  <Link
-                    key={pres.id}
-                    className="pres-card"
-                    to={presentationPath(routeUser.username, demand, pres.id)}
-                  >
-                    <div className="pres-card-cover">
-                      <img src={imageSrc(pres.coverImage, 400)} alt="" />
-                    </div>
-                    <div className="pres-card-body">
-                      <div className="pres-card-seller">
-                        <span className="pres-card-avatar">{seller.avatar}</span>
-                        <div>
-                          <strong>{seller.name}</strong>
-                          <small>@{seller.username} · {seller.city}</small>
-                        </div>
-                      </div>
-                      <p className="pres-card-desc">{pres.description}</p>
-                      <div className="pres-card-meta">
-                        <span><Icon name="PackageCheck" size={13} /> {pres.condition}</span>
-                        <span><Icon name="Image" size={13} /> {pres.images.length} fotoğraf</span>
-                      </div>
-                    </div>
-                    <div className="pres-card-status">
-                      <StatusBadge tone={statusTone}>{statusLabel}</StatusBadge>
-                      <Icon name="ChevronRight" size={18} />
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          )}
-        </section>
-      )}
 
       <Modal
         open={presenting}
@@ -394,6 +373,33 @@ export function DemandDetailPage() {
             </select>
           </label>
           <label className="present-field">
+            <span>Yıl</span>
+            <input
+              inputMode="numeric"
+              value={presentYear}
+              onChange={(event) => setPresentYear(event.target.value.replace(/[^0-9]/g, '').slice(0, 4))}
+              placeholder="Örn. 2019"
+            />
+          </label>
+          <label className="present-field">
+            <span>Renk</span>
+            <select value={presentColor} onChange={(event) => setPresentColor(event.target.value)}>
+              <option value="">Seç</option>
+              {COLORS.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          </label>
+          <label className="present-field">
+            <span>Ürün defosu</span>
+            <select value={presentDefect} onChange={(event) => setPresentDefect(event.target.value)}>
+              <option value="">Seç</option>
+              {DEFECT_OPTIONS.map((o) => (
+                <option key={o} value={o}>{o}</option>
+              ))}
+            </select>
+          </label>
+          <label className="present-field">
             <span>
               Açıklama / not ·{' '}
               <span className={`muted-count${noteLen > 0 && noteLen < NOTE_MIN ? ' warn' : ''}`}>{noteLen}/{NOTE_MAX}</span>
@@ -417,6 +423,24 @@ export function DemandDetailPage() {
           <img src={imageSrc(images[safeIndex], 1600)} alt={demand.title} />
         </div>
       ) : null}
+
+      <Modal
+        open={deleteConfirmOpen}
+        onClose={() => setDeleteConfirmOpen(false)}
+        title="Talebi sil"
+        footer={
+          <>
+            <button type="button" className="button ghost" onClick={() => setDeleteConfirmOpen(false)}>
+              Vazgeç
+            </button>
+            <button type="button" className="button danger" onClick={confirmDeleteDemand}>
+              Evet, sil
+            </button>
+          </>
+        }
+      >
+        <p>Bu talebi silmek üzeresin. Bu işlem geri alınamaz ve talep herkes için kaldırılır.</p>
+      </Modal>
     </div>
   );
 }
