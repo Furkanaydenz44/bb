@@ -16,6 +16,7 @@ const navBeforeCategories: Array<{ label: string; icon: IconName; path: string }
 const navAfterCategories: Array<{ label: string; icon: IconName; path: string }> = [
   { label: 'Sunumlarım', icon: 'Send', path: 'sunumlarim' },
   { label: 'Taleplerim', icon: 'ListChecks', path: 'taleplerim' },
+  { label: 'Favorilerim', icon: 'Heart', path: 'favorilerim' },
 ];
 
 export function AppLayout() {
@@ -26,7 +27,7 @@ export function AppLayout() {
   const [query, setQuery] = useState('');
   const [catOpen, setCatOpen] = useState(false);
   const [activeCat, setActiveCat] = useState(categories[0].id);
-  const catTriggerRef = useRef<HTMLButtonElement>(null);
+  const catTriggerRef = useRef<HTMLAnchorElement>(null);
   const session = getCurrentUser();
   const { unreadCount, getUserNotifications, markNotificationsRead, deleteNotification } = useAppData();
 
@@ -125,7 +126,7 @@ export function AppLayout() {
               )}
             </div>
 
-            <NavLink className="icon-btn" to={`${base}/mesajlar`} aria-label="Mesajlar">
+            <NavLink className="icon-btn" to={`${base}/mesajlar`} aria-label="Sohbetler">
               <Icon name="MessageCircle" size={19} />
             </NavLink>
 
@@ -204,18 +205,18 @@ export function AppLayout() {
               if (!event.currentTarget.contains(event.relatedTarget as Node)) setCatOpen(false);
             }}
           >
-            <button
+            <NavLink
               ref={catTriggerRef}
-              type="button"
-              className={`topnav-link cat-trigger${catOpen ? ' active' : ''}`}
-              onClick={() => setCatOpen((open) => !open)}
+              to={`${base}/kategoriler`}
+              className={({ isActive }) => `topnav-link cat-trigger${catOpen ? ' active' : ''}${isActive ? ' active' : ''}`}
+              onClick={() => setCatOpen(false)}
               aria-expanded={catOpen}
               aria-haspopup="true"
               aria-controls="cat-mega"
             >
               <Icon name="Menu" size={17} />
               Kategoriler
-            </button>
+            </NavLink>
 
             {catOpen && (
               <div className="cat-mega" id="cat-mega" aria-label="Kategoriler">
@@ -267,7 +268,7 @@ export function AppLayout() {
               key={item.path}
               to={`${base}/${item.path}`}
               className={({ isActive }) =>
-                `topnav-link${item.path === 'taleplerim' ? ' topnav-taleplerim' : ''}${item.path === 'sunumlarim' ? ' topnav-sunumlarim' : ''}${isActive ? ' active' : ''}`
+                `topnav-link${item.path === 'taleplerim' ? ' topnav-taleplerim' : ''}${item.path === 'sunumlarim' ? ' topnav-sunumlarim' : ''}${item.path === 'favorilerim' ? ' topnav-favorilerim' : ''}${isActive ? ' active' : ''}`
               }
             >
               <Icon name={item.icon} size={17} />

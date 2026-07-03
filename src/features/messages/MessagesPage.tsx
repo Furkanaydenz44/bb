@@ -263,7 +263,7 @@ export function MessagesPage() {
 
   return (
     <div className="page-stack">
-      <PageHeader title="Mesajlar" description="Anlaşma ve teklif sohbetlerini tek yerden yönet." />
+      <PageHeader title="Sohbetler" description="Anlaşma ve teklif sohbetlerini tek yerden yönet." />
       <div className="inbox-layout">
         <aside className="thread-list">
           <div className="thread-list-head">Sohbetler · {threads.length}</div>

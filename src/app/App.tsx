@@ -3,10 +3,12 @@ import { AppLayout } from './layouts/AppLayout';
 import { DemandListPage } from '../features/demands/DemandListPage';
 import { DemandDetailPage } from '../features/demands/DemandDetailPage';
 import { MyDemandsPage } from '../features/demands/MyDemandsPage';
+import { FavoritesPage } from '../features/demands/FavoritesPage';
 import { PresentationDetailPage } from '../features/presentations/PresentationDetailPage';
 import { MyPresentationsPage } from '../features/presentations/MyPresentationsPage';
 import { DemandPresentationsPage } from '../features/presentations/DemandPresentationsPage';
 import { ExplorePage } from '../features/demands/ExplorePage';
+import { CategoriesPage } from '../features/demands/CategoriesPage';
 import { CreateDemandPage } from '../features/create-demand/CreateDemandPage';
 import { MessagesPage } from '../features/messages/MessagesPage';
 import { ProfilePage } from '../features/profile/ProfilePage';
@@ -29,8 +31,10 @@ export function App() {
         <Route index element={<DemandListPage />} />
         <Route path="kategori/:categoryId" element={<DemandListPage />} />
         <Route path="kesfet" element={<ExplorePage />} />
+        <Route path="kategoriler" element={<CategoriesPage />} />
         <Route path="talep-ac" element={<CreateDemandPage />} />
         <Route path="taleplerim" element={<MyDemandsPage />} />
+        <Route path="favorilerim" element={<FavoritesPage />} />
         <Route path="sunumlarim" element={<MyPresentationsPage />} />
         <Route path="ilan/:demandSlug" element={<DemandDetailPage />} />
         <Route path="ilan/:demandSlug/sunumlar" element={<DemandPresentationsPage />} />

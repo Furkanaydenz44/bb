@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Avatar } from '../../components/Avatar';
+import { FavoriteButton } from '../../components/FavoriteButton';
 import { Icon, type IconName } from '../../components/Icon';
 import { Modal } from '../../components/Modal';
 import { imageSrc } from '../../data/images';
@@ -21,6 +22,8 @@ const TRUST_ITEMS: Array<{ icon: IconName; title: string; copy: string }> = [
 const CONDITIONS = ['Sıfır (yeni)', 'Etiketli', 'Az kullanılmış', 'İkinci el · iyi durumda', 'İkinci el'];
 const COLORS = ['Siyah', 'Beyaz', 'Gri', 'Gümüş', 'Altın', 'Kırmızı', 'Mavi', 'Yeşil', 'Sarı', 'Turuncu', 'Mor', 'Pembe', 'Kahverengi', 'Bej', 'Lacivert'];
 const DEFECT_OPTIONS = ['Var', 'Yok'];
+const CURRENT_YEAR = new Date().getFullYear();
+const YEARS = Array.from({ length: CURRENT_YEAR - 1950 + 1 }, (_, i) => String(CURRENT_YEAR - i));
 const MIN_PHOTOS = 3;
 const MAX_PHOTOS = 10;
 const NOTE_MIN = 10;
@@ -30,7 +33,8 @@ export function DemandDetailPage() {
   const { username = '@ahmetsafak', demandSlug = '' } = useParams();
   const routeUser = getUser(username);
   const navigate = useNavigate();
-  const { getDemandByRoute, getDemandPresentations, getDemandOffers, createPresentation, deleteDemand, deals } = useAppData();
+  const { getDemandByRoute, getDemandPresentations, getDemandOffers, createPresentation, deleteDemand, deals, getFavoriteCount } =
+    useAppData();
   const demand = getDemandByRoute(demandSlug);
   const [activeImage, setActiveImage] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -39,6 +43,7 @@ export function DemandDetailPage() {
   const [presentVideos, setPresentVideos] = useState<string[]>([]);
   const [presentNote, setPresentNote] = useState('');
   const [presentCondition, setPresentCondition] = useState('İkinci el · iyi durumda');
+  const [presentPrice, setPresentPrice] = useState(0);
   const [presentYear, setPresentYear] = useState('');
   const [presentColor, setPresentColor] = useState('');
   const [presentDefect, setPresentDefect] = useState('');
@@ -67,6 +72,7 @@ export function DemandDetailPage() {
   const category = getCategory(demand.categoryId);
   const presentations = getDemandPresentations(demand.id);
   const offers = getDemandOffers(demand.id);
+  const favoriteCount = getFavoriteCount(demand.id);
   const isOwner = routeUser.id === demand.ownerId;
   const demandDeals = deals.filter((d) => d.demandId === demand.id);
   const hasActiveDeal = demandDeals.some((d) => d.status !== 'delivered');
@@ -93,6 +99,7 @@ export function DemandDetailPage() {
 
   function submitPresentation() {
     if (!demand || !presentValid) return;
+    const hasPriceOffer = presentPrice > 0;
     createPresentation({
       demandId: demand.id,
       sellerId: routeUser.id,
@@ -103,6 +110,7 @@ export function DemandDetailPage() {
       year: presentYear,
       color: presentColor,
       hasDefect: presentDefect,
+      price: hasPriceOffer ? presentPrice : undefined,
     });
     setPresenting(false);
     setPresentPhotos([]);
@@ -111,6 +119,8 @@ export function DemandDetailPage() {
     setPresentYear('');
     setPresentColor('');
     setPresentDefect('');
+    setPresentPrice(0);
+    if (hasPriceOffer) navigate(`${userBase(routeUser.username)}/mesajlar`);
   }
 
   function confirmDeleteDemand() {
@@ -134,6 +144,12 @@ export function DemandDetailPage() {
             <Icon name="ArrowLeft" size={17} />
             Geri
           </Link>
+          {!isOwner && (
+            <Link className="detail-owner-tag" to={userBase(owner.username)}>
+              <Avatar label={owner.avatar} size="sm" />
+              <span>{owner.name}</span>
+            </Link>
+          )}
         </div>
         <div className="detail-topline-right">
           {isOwner && (
@@ -143,10 +159,11 @@ export function DemandDetailPage() {
               {presentations.length > 0 && <span className="pres-list-count">{presentations.length}</span>}
             </Link>
           )}
-          <Link className="detail-owner-chip" to={userBase(owner.username)}>
-            <Avatar label={owner.avatar} size="sm" />
-            <span>@{owner.username}</span>
-          </Link>
+          <div className="pres-shortcut-btn favorite-count-pill">
+            <Icon name="Heart" size={16} fill="#fff" color="#e0392b" />
+            Favoriler
+            <span className="pres-list-count">{favoriteCount}</span>
+          </div>
         </div>
       </div>
 
@@ -163,6 +180,7 @@ export function DemandDetailPage() {
               ) : (
                 <div className="detail-photo-main-empty"><Icon name="Camera" size={32} /></div>
               )}
+              <FavoriteButton demandId={demand.id} userId={routeUser.id} size="lg" />
             </div>
             <p className="detail-media-section-label">Fotoğraflar</p>
             <div className="detail-photo-grid">
@@ -203,21 +221,12 @@ export function DemandDetailPage() {
         </section>
 
         <main className="detail-main">
-          <section className="detail-info-card">
-            <span className="detail-box-label">Başlık</span>
-            <h1 className="detail-title">{demand.title}</h1>
+          <section className="detail-hero-card">
+            {category && <span className="detail-hero-eyebrow">{category.name}</span>}
+            <h1 className="detail-hero-title">{demand.title}</h1>
+            <div className="detail-hero-price">{formatPrice(demand.price)}</div>
+            <p className="detail-hero-desc">{demand.description}</p>
           </section>
-
-          <section className="detail-info-card">
-            <span className="detail-box-label">Fiyat</span>
-            <div className="detail-price-value">{formatPrice(demand.price)}</div>
-          </section>
-
-          <section className="detail-spec-card">
-            <span className="detail-box-label">Açıklama</span>
-            <p className="detail-desc">{demand.description}</p>
-          </section>
-
         </main>
 
         <aside className="detail-aside">
@@ -365,6 +374,15 @@ export function DemandDetailPage() {
             </div>
           </div>
           <label className="present-field">
+            <span>Satış fiyatı (₺)</span>
+            <input
+              inputMode="numeric"
+              value={presentPrice || ''}
+              onChange={(event) => setPresentPrice(Number(event.target.value.replace(/[^0-9]/g, '')) || 0)}
+              placeholder={`Örn. ${demand.price}`}
+            />
+          </label>
+          <label className="present-field">
             <span>Ürün durumu</span>
             <select value={presentCondition} onChange={(event) => setPresentCondition(event.target.value)}>
               {CONDITIONS.map((c) => (
@@ -374,12 +392,12 @@ export function DemandDetailPage() {
           </label>
           <label className="present-field">
             <span>Yıl</span>
-            <input
-              inputMode="numeric"
-              value={presentYear}
-              onChange={(event) => setPresentYear(event.target.value.replace(/[^0-9]/g, '').slice(0, 4))}
-              placeholder="Örn. 2019"
-            />
+            <select value={presentYear} onChange={(event) => setPresentYear(event.target.value)}>
+              <option value="">Seç</option>
+              {YEARS.map((y) => (
+                <option key={y} value={y}>{y}</option>
+              ))}
+            </select>
           </label>
           <label className="present-field">
             <span>Renk</span>

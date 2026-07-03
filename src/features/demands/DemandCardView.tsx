@@ -1,4 +1,4 @@
-import { Icon } from '../../components/Icon';
+import type { ReactNode } from 'react';
 import { imageSrc } from '../../data/images';
 
 export interface DemandCardViewProps {
@@ -8,6 +8,7 @@ export interface DemandCardViewProps {
   price: string;
   ownerName: string;
   subcategoryLabel?: string;
+  favoriteButton?: ReactNode;
 }
 
 export function DemandCardView({
@@ -16,6 +17,7 @@ export function DemandCardView({
   description,
   price,
   subcategoryLabel,
+  favoriteButton,
 }: DemandCardViewProps) {
   const shortDesc = description.length > 72 ? description.slice(0, 72).trimEnd() + '…' : description;
 
@@ -23,6 +25,7 @@ export function DemandCardView({
     <>
       <div className="demand-image">
         <img src={imageSrc(coverImage, 620)} alt="" />
+        {favoriteButton}
       </div>
       <div className="demand-card-body">
         {subcategoryLabel && <span className="demand-subcat-label">{subcategoryLabel}</span>}

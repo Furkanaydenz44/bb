@@ -26,6 +26,9 @@ const CITIES = [
   'Tunceli', 'Uşak', 'Van', 'Yalova', 'Yozgat', 'Zonguldak',
 ];
 
+const CURRENT_YEAR = new Date().getFullYear();
+const YEARS = Array.from({ length: CURRENT_YEAR - 1950 + 1 }, (_, i) => String(CURRENT_YEAR - i));
+
 const PRESETS: Array<[string, number]> = [
   ['₺5B', 5000],
   ['₺10B', 10000],
@@ -60,6 +63,7 @@ export function CreateDemandPage() {
   const [brand, setBrand] = useState('');
   const [model, setModel] = useState('');
   const [year, setYear] = useState('');
+  const [yearOpen, setYearOpen] = useState(false);
   const [color, setColor] = useState('');
   const [colorOpen, setColorOpen] = useState(false);
   const [condition, setCondition] = useState('');
@@ -225,18 +229,26 @@ export function CreateDemandPage() {
           <div className="city-price">
             <div className="cp-col">
               <div className="field-label">Yıl</div>
-              <div className="card-block city-card">
-                <div className="city-trigger" style={{ cursor: 'text' }}>
+              <div className={`card-block city-card${yearOpen ? ' open' : ''}`}>
+                <button type="button" className="city-trigger" onClick={() => setYearOpen((o) => !o)}>
                   <Icon name="Calendar" size={16} />
-                  <input
-                    className={`city-label${year ? '' : ' ph'}`}
-                    style={{ border: 'none', outline: 'none', background: 'transparent', flex: 1, font: 'inherit', cursor: 'text' }}
-                    value={year}
-                    onChange={(e) => setYear(e.target.value.replace(/[^0-9]/g, '').slice(0, 4))}
-                    inputMode="numeric"
-                    placeholder="Örn. 2019"
-                  />
-                </div>
+                  <span className={`city-label${year ? '' : ' ph'}`}>{year || 'Yıl seç'}</span>
+                  <span className="city-chev"><Icon name="ChevronRight" size={16} /></span>
+                </button>
+                {yearOpen && (
+                  <>
+                    <button type="button" className="city-backdrop" aria-label="Kapat" onClick={() => setYearOpen(false)} />
+                    <div className="city-panel">
+                      <div className="city-list">
+                        {YEARS.map((y) => (
+                          <button key={y} type="button" className={`city-opt${year === y ? ' sel' : ''}`} onClick={() => { setYear(y); setYearOpen(false); }}>
+                            {y}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
             <div className="cp-col">

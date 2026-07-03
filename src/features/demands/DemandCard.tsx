@@ -4,6 +4,7 @@ import { getUser } from '../../services/catalogService';
 import { formatPrice, shortName } from '../../utils/format';
 import { demandPath } from '../../utils/routes';
 import { DemandCardView } from './DemandCardView';
+import { FavoriteButton } from '../../components/FavoriteButton';
 
 interface DemandCardProps {
   demand: Demand;
@@ -24,6 +25,7 @@ export function DemandCard({ demand, subcategoryLabel }: DemandCardProps) {
         price={formatPrice(demand.price)}
         ownerName={shortName(owner.name)}
         subcategoryLabel={subcategoryLabel}
+        favoriteButton={<FavoriteButton demandId={demand.id} userId={activeUser.id} />}
       />
     </Link>
   );

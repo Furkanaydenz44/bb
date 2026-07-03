@@ -38,6 +38,7 @@ const LS = {
   threads: 'bulbana.threads',
   messages: 'bulbana.messages',
   notifications: 'bulbana.notifications',
+  favorites: 'bulbana.favorites',
 };
 
 function read<T>(key: string, fallback: T): T {
@@ -104,6 +105,7 @@ export interface CreatePresentationInput {
   year?: string;
   color?: string;
   hasDefect?: string;
+  price?: number;
 }
 
 export interface SendOfferInput {
@@ -138,6 +140,9 @@ interface AppDataValue {
   getThreadMessages: (threadId: string) => Message[];
   getUserNotifications: (userId: UserId) => AppNotification[];
   unreadCount: (userId: UserId) => number;
+  isFavorite: (userId: UserId, demandId: string) => boolean;
+  getUserFavoriteDemands: (userId: UserId) => Demand[];
+  getFavoriteCount: (demandId: string) => number;
 
   // --- actions ---
   createDemand: (input: CreateDemandInput) => Demand;
@@ -155,6 +160,7 @@ interface AppDataValue {
   markNotificationsRead: (userId: UserId) => void;
   deleteNotification: (notificationId: string) => void;
   deleteDemand: (demandId: string, byUserId: UserId) => boolean;
+  toggleFavorite: (userId: UserId, demandId: string) => void;
 }
 
 const Ctx = createContext<AppDataValue | null>(null);
@@ -177,6 +183,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     ),
   );
   const [notifications, setNotifications] = useState<AppNotification[]>(() => read(LS.notifications, []));
+  const [favorites, setFavorites] = useState<Record<string, string[]>>(() => read(LS.favorites, {}));
 
   useEffect(() => write(LS.demands, userDemands), [userDemands]);
   useEffect(() => write(LS.deletedDemandIds, deletedDemandIds), [deletedDemandIds]);
@@ -187,6 +194,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   useEffect(() => write(LS.threads, threads), [threads]);
   useEffect(() => write(LS.messages, messages), [messages]);
   useEffect(() => write(LS.notifications, notifications), [notifications]);
+  useEffect(() => write(LS.favorites, favorites), [favorites]);
 
   const demands: Demand[] = [...userDemands, ...seedDemands].filter((d) => !deletedDemandIds.includes(d.id));
   const presentations: Presentation[] = [...seedPresentations, ...userPresentations].map((p) =>
@@ -279,6 +287,13 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     getUserNotifications: (userId) =>
       notifications.filter((n) => n.userId === userId).sort((a, b) => b.at - a.at),
     unreadCount: (userId) => notifications.filter((n) => n.userId === userId && !n.read).length,
+    isFavorite: (userId, demandId) => (favorites[userId] ?? []).includes(demandId),
+    getUserFavoriteDemands: (userId) => {
+      const ids = favorites[userId] ?? [];
+      return demands.filter((d) => ids.includes(d.id));
+    },
+    getFavoriteCount: (demandId) =>
+      Object.values(favorites).filter((ids) => ids.includes(demandId)).length,
 
     createDemand: (input) => {
       const demand: Demand = {
@@ -309,6 +324,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     createPresentation: (input) => {
       const demand = demands.find((d) => d.id === input.demandId);
       const images = input.images && input.images.length ? input.images : [demand?.coverImage || CATEGORY_COVER[demand?.categoryId ?? 'foto']];
+      const hasPriceOffer = !!input.price && input.price > 0;
       const presentation: Presentation = {
         id: genId(),
         demandId: input.demandId,
@@ -319,7 +335,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         images,
         videos: input.videos ?? 0,
         description: input.description?.trim() || 'Aradığın ürünü sunuyorum.',
-        status: 'submitted',
+        status: hasPriceOffer ? 'offer_requested' : 'submitted',
         createdAt: Date.now(),
         year: input.year || undefined,
         color: input.color || undefined,
@@ -334,6 +350,27 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
           `/ilan/${demandSlug(demand)}/sunum/${presentation.id}`,
         );
       }
+
+      if (demand && hasPriceOffer) {
+        const at = Date.now();
+        const offer: Offer = {
+          id: genId(),
+          demandId: demand.id,
+          presentationId: presentation.id,
+          sellerId: presentation.sellerId,
+          buyerId: demand.ownerId,
+          price: input.price as number,
+          status: 'pending',
+          createdAt: at,
+          history: [{ actor: 'seller', action: 'offer', price: input.price as number, at }],
+        };
+        setOffers((prev) => [offer, ...prev]);
+        const thread = ensureThread(demand.id, presentation.id, demand.ownerId, presentation.sellerId);
+        pushMessage(thread.id, input.sellerId, 'system', 'Sohbet açıldı.');
+        pushMessage(thread.id, input.sellerId, 'offer', '', input.price);
+        notify(demand.ownerId, 'offer', `${nameOf(presentation.sellerId)} ${(input.price as number).toLocaleString('tr-TR')}₺ resmi teklif verdi`, threadHref(thread));
+      }
+
       return presentation;
     },
 
@@ -416,6 +453,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         history: [{ actor: 'seller', action: 'offer', price: input.price, at }],
       };
       setOffers((prev) => [offer, ...prev]);
+      patchPresentation(pres.id, { status: 'offer_requested' });
       const thread = ensureThread(demand.id, pres.id, demand.ownerId, pres.sellerId);
       pushMessage(thread.id, byUserId, 'system', 'Sohbet açıldı.');
       pushMessage(thread.id, byUserId, 'offer', input.note?.trim() ?? '', input.price);
@@ -530,6 +568,16 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       if (demandDeals.some((d) => d.status !== 'delivered')) return false; // ödeme sonuçlanmamış anlaşma varsa silme
       removeDemandRecord(demandId);
       return true;
+    },
+
+    toggleFavorite: (userId, demandId) => {
+      setFavorites((prev) => {
+        const current = prev[userId] ?? [];
+        const next = current.includes(demandId)
+          ? current.filter((id) => id !== demandId)
+          : [...current, demandId];
+        return { ...prev, [userId]: next };
+      });
     },
   };
 
