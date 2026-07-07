@@ -21,7 +21,6 @@ import type {
   UserId,
 } from '../data/types';
 import { findUser } from '../services/session';
-import { offerCreditCost } from '../lib/credits';
 import { demandSlug } from '../utils/routes';
 
 /**
@@ -31,6 +30,7 @@ import { demandSlug } from '../utils/routes';
 
 const LS = {
   demands: 'bulbana.userDemands',
+  deletedDemandIds: 'bulbana.deletedDemandIds',
   presentations: 'bulbana.userPresentations',
   presentationPatches: 'bulbana.presentationPatches',
   offers: 'bulbana.offers',
@@ -38,7 +38,7 @@ const LS = {
   threads: 'bulbana.threads',
   messages: 'bulbana.messages',
   notifications: 'bulbana.notifications',
-  creditDeltas: 'bulbana.creditDeltas',
+  favorites: 'bulbana.favorites',
 };
 
 function read<T>(key: string, fallback: T): T {
@@ -47,6 +47,14 @@ function read<T>(key: string, fallback: T): T {
     return raw ? (JSON.parse(raw) as T) : fallback;
   } catch {
     return fallback;
+  }
+}
+
+function write(key: string, value: unknown) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch (error) {
+    console.error(`localStorage.setItem(${key}) başarısız oldu (kota dolu olabilir):`, error);
   }
 }
 
@@ -76,7 +84,14 @@ export interface CreateDemandInput {
   price: number;
   city: string;
   district?: string;
+  brand?: string;
+  model?: string;
+  year?: string;
+  color?: string;
+  condition?: string;
+  hasDefect?: string;
   referenceImages?: string[];
+  videos?: string[];
 }
 
 export interface CreatePresentationInput {
@@ -87,6 +102,10 @@ export interface CreatePresentationInput {
   condition?: string;
   images?: string[];
   videos?: number;
+  year?: string;
+  color?: string;
+  hasDefect?: string;
+  price?: number;
 }
 
 export interface SendOfferInput {
@@ -121,13 +140,16 @@ interface AppDataValue {
   getThreadMessages: (threadId: string) => Message[];
   getUserNotifications: (userId: UserId) => AppNotification[];
   unreadCount: (userId: UserId) => number;
-  creditsOf: (userId: UserId) => number;
+  isFavorite: (userId: UserId, demandId: string) => boolean;
+  getUserFavoriteDemands: (userId: UserId) => Demand[];
+  getFavoriteCount: (demandId: string) => number;
 
   // --- actions ---
   createDemand: (input: CreateDemandInput) => Demand;
   createPresentation: (input: CreatePresentationInput) => Presentation;
   requestOffer: (presentationId: string, byUserId: UserId) => void;
   rejectPresentation: (presentationId: string, byUserId: UserId) => void;
+  cancelPresentation: (presentationId: string, byUserId: UserId) => boolean;
   sendOffer: (input: SendOfferInput, byUserId: UserId) => Thread | undefined;
   counterOffer: (offerId: string, price: number, byUserId: UserId, note?: string) => void;
   acceptOffer: (offerId: string, byUserId: UserId) => Deal | undefined;
@@ -136,12 +158,16 @@ interface AppDataValue {
   markDelivered: (dealId: string, byUserId: UserId) => void;
   sendMessage: (threadId: string, senderId: UserId, body: string) => void;
   markNotificationsRead: (userId: UserId) => void;
+  deleteNotification: (notificationId: string) => void;
+  deleteDemand: (demandId: string, byUserId: UserId) => boolean;
+  toggleFavorite: (userId: UserId, demandId: string) => void;
 }
 
 const Ctx = createContext<AppDataValue | null>(null);
 
 export function AppDataProvider({ children }: { children: ReactNode }) {
   const [userDemands, setUserDemands] = useState<Demand[]>(() => read(LS.demands, []));
+  const [deletedDemandIds, setDeletedDemandIds] = useState<string[]>(() => read(LS.deletedDemandIds, []));
   const [userPresentations, setUserPresentations] = useState<Presentation[]>(() => read(LS.presentations, []));
   const [presentationPatches, setPresentationPatches] = useState<Record<string, Partial<Presentation>>>(() =>
     read(LS.presentationPatches, {}),
@@ -149,21 +175,28 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const [offers, setOffers] = useState<Offer[]>(() => read(LS.offers, []));
   const [deals, setDeals] = useState<Deal[]>(() => read(LS.deals, []));
   const [threads, setThreads] = useState<Thread[]>(() => read(LS.threads, []));
-  const [messages, setMessages] = useState<Message[]>(() => read(LS.messages, []));
+  const [messages, setMessages] = useState<Message[]>(() =>
+    read<Message[]>(LS.messages, []).map((m) =>
+      /^Sohbet açıldı · (teklif maliyeti \d+ kredi|pazarlık ücretsiz)/.test(m.body)
+        ? { ...m, body: 'Sohbet açıldı.' }
+        : m,
+    ),
+  );
   const [notifications, setNotifications] = useState<AppNotification[]>(() => read(LS.notifications, []));
-  const [creditDeltas, setCreditDeltas] = useState<Record<string, number>>(() => read(LS.creditDeltas, {}));
+  const [favorites, setFavorites] = useState<Record<string, string[]>>(() => read(LS.favorites, {}));
 
-  useEffect(() => void localStorage.setItem(LS.demands, JSON.stringify(userDemands)), [userDemands]);
-  useEffect(() => void localStorage.setItem(LS.presentations, JSON.stringify(userPresentations)), [userPresentations]);
-  useEffect(() => void localStorage.setItem(LS.presentationPatches, JSON.stringify(presentationPatches)), [presentationPatches]);
-  useEffect(() => void localStorage.setItem(LS.offers, JSON.stringify(offers)), [offers]);
-  useEffect(() => void localStorage.setItem(LS.deals, JSON.stringify(deals)), [deals]);
-  useEffect(() => void localStorage.setItem(LS.threads, JSON.stringify(threads)), [threads]);
-  useEffect(() => void localStorage.setItem(LS.messages, JSON.stringify(messages)), [messages]);
-  useEffect(() => void localStorage.setItem(LS.notifications, JSON.stringify(notifications)), [notifications]);
-  useEffect(() => void localStorage.setItem(LS.creditDeltas, JSON.stringify(creditDeltas)), [creditDeltas]);
+  useEffect(() => write(LS.demands, userDemands), [userDemands]);
+  useEffect(() => write(LS.deletedDemandIds, deletedDemandIds), [deletedDemandIds]);
+  useEffect(() => write(LS.presentations, userPresentations), [userPresentations]);
+  useEffect(() => write(LS.presentationPatches, presentationPatches), [presentationPatches]);
+  useEffect(() => write(LS.offers, offers), [offers]);
+  useEffect(() => write(LS.deals, deals), [deals]);
+  useEffect(() => write(LS.threads, threads), [threads]);
+  useEffect(() => write(LS.messages, messages), [messages]);
+  useEffect(() => write(LS.notifications, notifications), [notifications]);
+  useEffect(() => write(LS.favorites, favorites), [favorites]);
 
-  const demands: Demand[] = [...userDemands, ...seedDemands];
+  const demands: Demand[] = [...userDemands, ...seedDemands].filter((d) => !deletedDemandIds.includes(d.id));
   const presentations: Presentation[] = [...seedPresentations, ...userPresentations].map((p) =>
     presentationPatches[p.id] ? { ...p, ...presentationPatches[p.id] } : p,
   );
@@ -199,7 +232,30 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   const threadHref = (t: Thread) => `/mesajlar/${t.id}`;
 
-  const creditsOf = (userId: UserId) => (findUser(userId)?.credits ?? 0) + (creditDeltas[userId] ?? 0);
+  // Talebi siteden kaldırır; bir anlaşmaya (deal) bağlı sunum/teklif/sohbet geçmiş olarak korunur,
+  // yalnız sonuçlanmamış/pazarlık aşamasındaki kayıtlar temizlenir.
+  const removeDemandRecord = (demandId: string) => {
+    const demandDeals = deals.filter((d) => d.demandId === demandId);
+    const keptPresentationIds = new Set(demandDeals.map((d) => d.presentationId));
+    const removablePresentationIds = presentations
+      .filter((p) => p.demandId === demandId && !keptPresentationIds.has(p.id))
+      .map((p) => p.id);
+    const removableThreadIds = threads
+      .filter((t) => t.demandId === demandId && !keptPresentationIds.has(t.presentationId))
+      .map((t) => t.id);
+
+    setUserDemands((prev) => prev.filter((d) => d.id !== demandId));
+    setDeletedDemandIds((prev) => (prev.includes(demandId) ? prev : [...prev, demandId]));
+    setUserPresentations((prev) => prev.filter((p) => !removablePresentationIds.includes(p.id)));
+    setPresentationPatches((prev) => {
+      const next = { ...prev };
+      removablePresentationIds.forEach((id) => delete next[id]);
+      return next;
+    });
+    setOffers((prev) => prev.filter((o) => !(o.demandId === demandId && !keptPresentationIds.has(o.presentationId))));
+    setThreads((prev) => prev.filter((t) => !removableThreadIds.includes(t.id)));
+    setMessages((prev) => prev.filter((m) => !removableThreadIds.includes(m.threadId)));
+  };
 
   const value: AppDataValue = {
     demands,
@@ -231,7 +287,13 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     getUserNotifications: (userId) =>
       notifications.filter((n) => n.userId === userId).sort((a, b) => b.at - a.at),
     unreadCount: (userId) => notifications.filter((n) => n.userId === userId && !n.read).length,
-    creditsOf,
+    isFavorite: (userId, demandId) => (favorites[userId] ?? []).includes(demandId),
+    getUserFavoriteDemands: (userId) => {
+      const ids = favorites[userId] ?? [];
+      return demands.filter((d) => ids.includes(d.id));
+    },
+    getFavoriteCount: (demandId) =>
+      Object.values(favorites).filter((ids) => ids.includes(demandId)).length,
 
     createDemand: (input) => {
       const demand: Demand = {
@@ -243,10 +305,17 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         price: input.price || 0,
         city: input.city || 'İstanbul',
         district: input.district?.trim() || undefined,
+        brand: input.brand || undefined,
+        model: input.model || undefined,
+        year: input.year || undefined,
+        color: input.color || undefined,
+        condition: input.condition || undefined,
+        hasDefect: input.hasDefect || undefined,
         badge: 'Aktif Alıcı',
         createdAtLabel: 'az önce',
         coverImage: input.referenceImages?.[0] || CATEGORY_COVER[input.categoryId] || imageIds.camera,
         referenceImages: input.referenceImages ?? [],
+        videos: input.videos ?? [],
       };
       setUserDemands((prev) => [demand, ...prev]);
       return demand;
@@ -255,6 +324,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     createPresentation: (input) => {
       const demand = demands.find((d) => d.id === input.demandId);
       const images = input.images && input.images.length ? input.images : [demand?.coverImage || CATEGORY_COVER[demand?.categoryId ?? 'foto']];
+      const hasPriceOffer = !!input.price && input.price > 0;
       const presentation: Presentation = {
         id: genId(),
         demandId: input.demandId,
@@ -265,13 +335,42 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         images,
         videos: input.videos ?? 0,
         description: input.description?.trim() || 'Aradığın ürünü sunuyorum.',
-        status: 'submitted',
+        status: hasPriceOffer ? 'offer_requested' : 'submitted',
         createdAt: Date.now(),
+        year: input.year || undefined,
+        color: input.color || undefined,
+        hasDefect: input.hasDefect || undefined,
       };
       setUserPresentations((prev) => [presentation, ...prev]);
       if (demand) {
-        notify(demand.ownerId, 'presentation', `${nameOf(input.sellerId)} talebine ürün sundu`, `/ilan/${demandSlug(demand)}`);
+        notify(
+          demand.ownerId,
+          'presentation',
+          `${nameOf(input.sellerId)} talebine ürün sundu`,
+          `/ilan/${demandSlug(demand)}/sunum/${presentation.id}`,
+        );
       }
+
+      if (demand && hasPriceOffer) {
+        const at = Date.now();
+        const offer: Offer = {
+          id: genId(),
+          demandId: demand.id,
+          presentationId: presentation.id,
+          sellerId: presentation.sellerId,
+          buyerId: demand.ownerId,
+          price: input.price as number,
+          status: 'pending',
+          createdAt: at,
+          history: [{ actor: 'seller', action: 'offer', price: input.price as number, at }],
+        };
+        setOffers((prev) => [offer, ...prev]);
+        const thread = ensureThread(demand.id, presentation.id, demand.ownerId, presentation.sellerId);
+        pushMessage(thread.id, input.sellerId, 'system', 'Sohbet açıldı.');
+        pushMessage(thread.id, input.sellerId, 'offer', '', input.price);
+        notify(demand.ownerId, 'offer', `${nameOf(presentation.sellerId)} ${(input.price as number).toLocaleString('tr-TR')}₺ resmi teklif verdi`, threadHref(thread));
+      }
+
       return presentation;
     },
 
@@ -280,20 +379,57 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       const demand = pres && demands.find((d) => d.id === pres.demandId);
       if (!pres || !demand) return;
       patchPresentation(presentationId, { status: 'offer_requested' });
-      const sellerName = findUser(pres.sellerId)?.username ?? pres.sellerId;
       notify(
         pres.sellerId,
         'approved',
         `${nameOf(demand.ownerId)} sunumunu beğendi — senden resmi teklif istiyor`,
-        `/ilan/${demandSlug(demand)}/sunum/${sellerName}`,
+        `/ilan/${demandSlug(demand)}/sunum/${pres.id}`,
       );
     },
 
     rejectPresentation: (presentationId, byUserId) => {
       const pres = presentations.find((p) => p.id === presentationId);
       if (!pres) return;
-      patchPresentation(presentationId, { status: 'rejected' });
       notify(pres.sellerId, 'rejected', `${nameOf(byUserId)} sunumunu beğenmedi`, undefined);
+
+      // Reddedilen sunum kalıcı değil; kendisi ve bağlı teklif/sohbet kayıtları silinir.
+      setUserPresentations((prev) => prev.filter((p) => p.id !== presentationId));
+      setPresentationPatches((prev) => {
+        if (!(presentationId in prev)) return prev;
+        const next = { ...prev };
+        delete next[presentationId];
+        return next;
+      });
+      setOffers((prev) => prev.filter((o) => o.presentationId !== presentationId));
+      const relatedThreadIds = threads.filter((t) => t.presentationId === presentationId).map((t) => t.id);
+      if (relatedThreadIds.length) {
+        setThreads((prev) => prev.filter((t) => !relatedThreadIds.includes(t.id)));
+        setMessages((prev) => prev.filter((m) => !relatedThreadIds.includes(m.threadId)));
+      }
+    },
+
+    cancelPresentation: (presentationId, byUserId) => {
+      const pres = presentations.find((p) => p.id === presentationId);
+      if (!pres || pres.sellerId !== byUserId) return false;
+      const hasDeal = deals.some((d) => d.presentationId === presentationId);
+      if (hasDeal) return false; // anlaşmaya bağlı sunum iptal edilemez
+      const demand = demands.find((d) => d.id === pres.demandId);
+      if (demand) notify(demand.ownerId, 'rejected', `${nameOf(byUserId)} sunumunu iptal etti`, undefined);
+
+      setUserPresentations((prev) => prev.filter((p) => p.id !== presentationId));
+      setPresentationPatches((prev) => {
+        if (!(presentationId in prev)) return prev;
+        const next = { ...prev };
+        delete next[presentationId];
+        return next;
+      });
+      setOffers((prev) => prev.filter((o) => o.presentationId !== presentationId));
+      const relatedThreadIds = threads.filter((t) => t.presentationId === presentationId).map((t) => t.id);
+      if (relatedThreadIds.length) {
+        setThreads((prev) => prev.filter((t) => !relatedThreadIds.includes(t.id)));
+        setMessages((prev) => prev.filter((m) => !relatedThreadIds.includes(m.threadId)));
+      }
+      return true;
     },
 
     sendOffer: (input, byUserId) => {
@@ -302,9 +438,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       if (!pres || !demand) return undefined;
       const existing = allOffers.find((o) => o.presentationId === pres.id);
       if (existing) return ensureThread(demand.id, pres.id, demand.ownerId, pres.sellerId); // teklif zaten var; sohbete götür
-      const cost = offerCreditCost(demand, findUser(demand.ownerId)?.score);
-      if (creditsOf(byUserId) < cost) return undefined; // kredi yetersiz
-      setCreditDeltas((prev) => ({ ...prev, [byUserId]: (prev[byUserId] ?? 0) - cost }));
       const at = Date.now();
       const offer: Offer = {
         id: genId(),
@@ -316,13 +449,13 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         note: input.note,
         delivery: input.delivery,
         status: 'pending',
-        creditCost: cost,
         createdAt: at,
         history: [{ actor: 'seller', action: 'offer', price: input.price, at }],
       };
       setOffers((prev) => [offer, ...prev]);
+      patchPresentation(pres.id, { status: 'offer_requested' });
       const thread = ensureThread(demand.id, pres.id, demand.ownerId, pres.sellerId);
-      pushMessage(thread.id, byUserId, 'system', `Sohbet açıldı · teklif maliyeti ${cost} kredi (ilanda yalnız 1 kez; pazarlık ücretsiz).`);
+      pushMessage(thread.id, byUserId, 'system', 'Sohbet açıldı.');
       pushMessage(thread.id, byUserId, 'offer', input.note?.trim() ?? '', input.price);
       notify(demand.ownerId, 'offer', `${nameOf(pres.sellerId)} ${input.price.toLocaleString('tr-TR')}₺ resmi teklif verdi`, threadHref(thread));
       return thread;
@@ -408,6 +541,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       const thread = ensureThread(deal.demandId, deal.presentationId, deal.buyerId, deal.sellerId);
       pushMessage(thread.id, byUserId, 'system', 'Teslim alındı — işlem tamamlandı. 🎉');
       notify(deal.sellerId, 'delivered', `${nameOf(deal.buyerId)} teslim aldı — işlem tamamlandı`, threadHref(thread));
+      // İşlem tamamlandı: talep artık siteden kaldırılır (anlaşma/sohbet geçmişi korunur).
+      removeDemandRecord(deal.demandId);
     },
 
     sendMessage: (threadId, senderId, body) => {
@@ -423,6 +558,27 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
     markNotificationsRead: (userId) =>
       setNotifications((prev) => prev.map((n) => (n.userId === userId ? { ...n, read: true } : n))),
+    deleteNotification: (notificationId) =>
+      setNotifications((prev) => prev.filter((n) => n.id !== notificationId)),
+
+    deleteDemand: (demandId, byUserId) => {
+      const demand = demands.find((d) => d.id === demandId);
+      if (!demand || demand.ownerId !== byUserId) return false;
+      const demandDeals = deals.filter((d) => d.demandId === demandId);
+      if (demandDeals.some((d) => d.status !== 'delivered')) return false; // ödeme sonuçlanmamış anlaşma varsa silme
+      removeDemandRecord(demandId);
+      return true;
+    },
+
+    toggleFavorite: (userId, demandId) => {
+      setFavorites((prev) => {
+        const current = prev[userId] ?? [];
+        const next = current.includes(demandId)
+          ? current.filter((id) => id !== demandId)
+          : [...current, demandId];
+        return { ...prev, [userId]: next };
+      });
+    },
   };
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

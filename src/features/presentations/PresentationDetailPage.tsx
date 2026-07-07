@@ -7,7 +7,6 @@ import { StatusBadge } from '../../components/StatusBadge';
 import { imageSrc } from '../../data/images';
 import { getUser } from '../../services/catalogService';
 import { useAppData } from '../../store/appData';
-import { offerCreditCost } from '../../lib/credits';
 import { demandPath, userBase } from '../../utils/routes';
 import { formatPrice } from '../../utils/format';
 
@@ -16,10 +15,22 @@ export function PresentationDetailPage() {
   const routeUser = getUser(username);
   const navigate = useNavigate();
   const [offering, setOffering] = useState(false);
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
+  const [activeIdx, setActiveIdx] = useState(0);
   const [offerPrice, setOfferPrice] = useState(0);
   const [offerNote, setOfferNote] = useState('');
-  const { getDemandByRoute, getPresentation, requestOffer, rejectPresentation, sendOffer, creditsOf, getOfferForPresentation, findThread } =
-    useAppData();
+  const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
+  const {
+    getDemandByRoute,
+    getPresentation,
+    requestOffer,
+    rejectPresentation,
+    cancelPresentation,
+    sendOffer,
+    getOfferForPresentation,
+    getDealForPresentation,
+    findThread,
+  } = useAppData();
   const demand = getDemandByRoute(demandSlug);
   const presentation = getPresentation(presentationId.replace(/^@/, ''));
 
@@ -36,7 +47,6 @@ export function PresentationDetailPage() {
     );
   }
 
-  const buyer = getUser(demand.ownerId);
   const seller = getUser(presentation.sellerId);
   const isBuyer = routeUser.id === demand.ownerId;
   const isSeller = routeUser.id === presentation.sellerId;
@@ -45,8 +55,8 @@ export function PresentationDetailPage() {
   const messagesBase = `${userBase(routeUser.username)}/mesajlar`;
 
   const offer = getOfferForPresentation(presentation.id);
-  const cost = offerCreditCost(demand, buyer.score);
-  const balance = creditsOf(routeUser.id);
+  const dealForPres = getDealForPresentation(presentation.id);
+  const canCancel = isSeller && !dealForPres;
 
   function submitOffer() {
     if (!presentation || offerPrice <= 0) return;
@@ -56,6 +66,13 @@ export function PresentationDetailPage() {
     if (created) navigate(`${messagesBase}/${created.id}`);
   }
 
+  function confirmCancelPresentation() {
+    if (!demand || !presentation) return;
+    const removed = cancelPresentation(presentation.id, routeUser.id);
+    setCancelConfirmOpen(false);
+    if (removed) navigate(demandPath(routeUser.username, demand));
+  }
+
   return (
     <div className="page-stack">
       <div className="detail-topline">
@@ -63,86 +80,81 @@ export function PresentationDetailPage() {
           <Icon name="ArrowLeft" size={17} />
           Talebe dön
         </Link>
-        <div className="breadcrumb-lite">
-          <Link to={userBase(routeUser.username)}>@{buyer.username}</Link>
-          <span>/ sunum /</span>
-          <Link to={userBase(routeUser.username)}>@{seller.username}</Link>
-        </div>
       </div>
 
       <section className="presentation-layout">
         <div className="presentation-media">
-          <img className="presentation-cover" src={imageSrc(presentation.coverImage, 1120)} alt={demand.title} />
-          <div className="media-strip">
-            {presentation.images.map((imageId, index) => (
-              <img key={index} src={imageSrc(imageId, 220)} alt="" />
-            ))}
-          </div>
+          {(() => {
+            const allImages = Array.from(new Set([presentation.coverImage, ...presentation.images]));
+            const safeIdx = Math.min(activeIdx, allImages.length - 1);
+            return (
+              <>
+                <img
+                  className="presentation-cover"
+                  src={imageSrc(allImages[safeIdx], 1120)}
+                  alt={demand.title}
+                  onClick={() => setLightboxSrc(allImages[safeIdx])}
+                  style={{ cursor: 'zoom-in' }}
+                />
+                {allImages.length > 1 && (
+                  <div className="media-strip">
+                    {allImages.map((imageId, index) => (
+                      <img
+                        key={index}
+                        src={imageSrc(imageId, 220)}
+                        alt=""
+                        onClick={() => setActiveIdx(index)}
+                        style={{ cursor: 'pointer', outline: index === safeIdx ? '2px solid var(--primary)' : 'none', borderRadius: 4 }}
+                      />
+                    ))}
+                  </div>
+                )}
+              </>
+            );
+          })()}
         </div>
 
         <div className="presentation-content">
-          {status === 'offer_requested' ? (
-            <StatusBadge tone="green">{offer ? 'Teklif verildi · sohbet açık' : 'Teklif istendi'}</StatusBadge>
-          ) : status === 'rejected' ? (
-            <StatusBadge tone="warning">Reddedildi</StatusBadge>
-          ) : (
-            <StatusBadge tone="purple">Sunuldu · inceleniyor</StatusBadge>
-          )}
+          <span className="pres-page-eyebrow">Ürün Sunumu</span>
           <h1>{demand.title}</h1>
           <p>{presentation.description}</p>
-
-          <div className="seller-panel">
-            <Avatar label={seller.avatar} size="lg" />
-            <div>
-              <span>Satıcı</span>
-              <strong>{seller.name}</strong>
-              <small>@{seller.username} · {seller.city} · {seller.responseTime} yanıt</small>
-            </div>
-            <StatusBadge tone="purple">{seller.completionRate}% tamamlama</StatusBadge>
+          <div className="pres-condition-chip">
+            <Icon name="PackageCheck" size={14} />
+            <span>Ürün durumu:</span>
+            <strong>{presentation.condition}</strong>
           </div>
-
-          <div className="criteria-grid">
-            <div>
-              <Icon name="PackageCheck" size={17} />
-              <strong>Ürün durumu</strong>
-              <span>{presentation.condition}</span>
-            </div>
-            <div>
-              <Icon name="Image" size={17} />
-              <strong>Kanıt seti</strong>
-              <span>{presentation.images.length} görsel{presentation.videos ? ` · ${presentation.videos} video` : ''}</span>
-            </div>
-            <div>
-              <Icon name="MapPin" size={17} />
-              <strong>Konum</strong>
-              <span>{presentation.city} teslimat opsiyonu</span>
-            </div>
-            <div>
-              <Icon name="ShieldCheck" size={17} />
-              <strong>Akış</strong>
-              <span>Teklif iste → satıcı teklif verir → sohbet → pazarlık → kargo.</span>
-            </div>
+          <div className="pres-condition-chip">
+            <Icon name="Calendar" size={14} />
+            <span>Yıl:</span>
+            <strong>{presentation.year ?? '—'}</strong>
+          </div>
+          <div className="pres-condition-chip">
+            <Icon name="Eye" size={14} />
+            <span>Renk:</span>
+            <strong>{presentation.color ?? '—'}</strong>
+          </div>
+          <div className="pres-condition-chip">
+            <Icon name="Eye" size={14} />
+            <span>Ürün defosu:</span>
+            <strong>{presentation.hasDefect ?? '—'}</strong>
           </div>
         </div>
 
         <aside className="action-panel">
-          <span className="eyebrow">Alıcı bütçesi</span>
-          <strong className="hero-price">{formatPrice(demand.price)}</strong>
-          <p>Beğendiğin sunumdan teklif iste; satıcı krediyle resmi teklif verince sohbet açılır.</p>
-          <div className="action-metrics">
-            <div>
-              <strong>{seller.score}</strong>
-              <span>puan</span>
-            </div>
-            <div>
-              <strong>{seller.sales}</strong>
-              <span>işlem</span>
-            </div>
-            <div>
-              <strong>{presentation.images.length}</strong>
-              <span>görsel</span>
+          <div className="pres-seller-info">
+            <span className="pres-seller-avatar">{seller.avatar}</span>
+            <div className="pres-seller-stats">
+              <strong className="pres-seller-name">{seller.name}</strong>
+              <div className="pres-seller-metrics">
+                <span><strong>{seller.score}</strong> puan</span>
+                <span><strong>{seller.sales}</strong> işlem</span>
+              </div>
             </div>
           </div>
+          <section className="pres-price-box">
+            <span className="pres-price-box-label">Alıcının fiyat beklentisi</span>
+            <div className="pres-price-box-value">{formatPrice(demand.price)}</div>
+          </section>
 
           {isBuyer && status === 'submitted' ? (
             <>
@@ -150,13 +162,17 @@ export function PresentationDetailPage() {
                 <Icon name="Handshake" size={17} />
                 Teklif İste
               </button>
-              <button className="button ghost wide" type="button" onClick={() => rejectPresentation(presentation.id, routeUser.id)}>
+              <button
+                className="button ghost wide"
+                type="button"
+                onClick={() => {
+                  rejectPresentation(presentation.id, routeUser.id);
+                  navigate(demandPath(routeUser.username, demand));
+                }}
+              >
                 <Icon name="X" size={17} />
                 Reddet
               </button>
-              <p style={{ margin: 0, fontSize: 12.5, lineHeight: 1.5, color: 'var(--muted)' }}>
-                Beğendiğin sunumdan teklif iste; satıcı resmi fiyatını verir.
-              </p>
             </>
           ) : null}
 
@@ -171,20 +187,18 @@ export function PresentationDetailPage() {
               <button
                 className="button primary wide"
                 type="button"
-                disabled={balance < cost}
                 onClick={() => {
                   setOfferPrice(demand.price);
                   setOffering(true);
                 }}
               >
                 <Icon name="Handshake" size={17} />
-                Resmi Teklif Ver · {cost} kredi
+                Resmi Teklif Ver
               </button>
-              <p style={{ margin: 0, fontSize: 12.5, lineHeight: 1.5, color: balance < cost ? '#b5462e' : 'var(--muted)' }}>
-                {balance < cost
-                  ? `Kredin yetersiz (${balance}/${cost}). Kredi yalnız ilk teklifte ödenir; pazarlık ücretsiz.`
-                  : `Bakiyen ${balance} kredi. Teklif maliyeti ${cost} kredi (ilanda 1 kez); revize/pazarlık ücretsiz.`}
-              </p>
+              <div className="pres-offer-requested-badge">
+                <span className="pres-offer-dot" />
+                Alıcı sunumu beğendi ve teklif talep etti
+              </div>
             </>
           ) : null}
 
@@ -197,22 +211,17 @@ export function PresentationDetailPage() {
 
           {isSeller && status === 'submitted' ? (
             <p style={{ margin: 0, fontSize: 12.5, lineHeight: 1.5, color: 'var(--muted)' }}>
-              Sunumun iletildi. Alıcı teklif isterse, krediyle resmi teklifini verirsin ve sohbet açılır.
+              Sunumun iletildi. Alıcı teklif isterse, resmi teklifini verirsin ve sohbet açılır.
             </p>
           ) : null}
 
-          {status === 'rejected' ? (
-            <p style={{ margin: 0, fontSize: 12.5, lineHeight: 1.5, color: 'var(--muted)' }}>Alıcı bu sunumu beğenmedi.</p>
+          {canCancel ? (
+            <button type="button" className="button ghost wide pres-cancel-btn" onClick={() => setCancelConfirmOpen(true)}>
+              <Icon name="X" size={17} />
+              Sunumu İptal Et
+            </button>
           ) : null}
 
-          <div className="trust-list">
-            {seller.trustSignals.map((signal) => (
-              <span key={signal}>
-                <Icon name="CheckCircle2" size={15} />
-                {signal}
-              </span>
-            ))}
-          </div>
         </aside>
       </section>
 
@@ -226,14 +235,14 @@ export function PresentationDetailPage() {
               Vazgeç
             </button>
             <button type="button" className="button primary" disabled={offerPrice <= 0} onClick={submitOffer}>
-              <Icon name="Handshake" size={16} /> Teklif Gönder · {cost} kredi
+              <Icon name="Handshake" size={16} /> Teklif Gönder
             </button>
           </>
         }
       >
         <div className="present-form">
           <p style={{ margin: 0, fontSize: 13, lineHeight: 1.5, color: 'var(--muted)' }}>
-            Alıcının ilan fiyatı <b style={{ color: 'var(--ink)' }}>{formatPrice(demand.price)}</b>. Resmi teklifini gir — bu bedel <b style={{ color: 'var(--ink)' }}>{cost} kredi</b> (yalnız ilk teklifte; pazarlık ücretsiz). Bakiyen: {balance} kredi.
+            Alıcının ilan fiyatı <b style={{ color: 'var(--ink)' }}>{formatPrice(demand.price)}</b>. Resmi teklifini gir — pazarlık ücretsizdir.
           </p>
           <label className="present-field">
             <span>Teklif fiyatı (₺)</span>
@@ -249,6 +258,33 @@ export function PresentationDetailPage() {
             <textarea value={offerNote} onChange={(event) => setOfferNote(event.target.value)} rows={2} placeholder="Teslimat, pazarlık payı…" />
           </label>
         </div>
+      </Modal>
+
+      {lightboxSrc ? (
+        <div className="detail-photo-lightbox" onClick={() => setLightboxSrc(null)}>
+          <button type="button" className="detail-photo-lightbox-x" onClick={() => setLightboxSrc(null)}>
+            <Icon name="X" size={18} />
+          </button>
+          <img src={imageSrc(lightboxSrc, 1600)} alt={demand.title} />
+        </div>
+      ) : null}
+
+      <Modal
+        open={cancelConfirmOpen}
+        onClose={() => setCancelConfirmOpen(false)}
+        title="Sunumu iptal et"
+        footer={
+          <>
+            <button type="button" className="button ghost" onClick={() => setCancelConfirmOpen(false)}>
+              Vazgeç
+            </button>
+            <button type="button" className="button danger" onClick={confirmCancelPresentation}>
+              Evet, iptal et
+            </button>
+          </>
+        }
+      >
+        <p>Bu sunumu iptal etmek üzeresin. Bu işlem geri alınamaz ve sunum kaldırılır.</p>
       </Modal>
     </div>
   );

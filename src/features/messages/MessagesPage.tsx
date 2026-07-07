@@ -61,6 +61,7 @@ export function MessagesPage() {
 
   const offer = active ? getOfferForPresentation(active.presentationId) : undefined;
   const deal = active ? getDealForPresentation(active.presentationId) : undefined;
+  const activeDemand = active ? getDemands().find((d) => d.id === active.demandId) : undefined;
   const iAmBuyer = active ? active.buyerId === me.id : false;
   const msgs = active ? getThreadMessages(active.id) : [];
   const offerMsgs = msgs.filter((m) => m.kind === 'offer');
@@ -122,6 +123,13 @@ export function MessagesPage() {
             <span className={`ocard-pill ${pill.cls}`}>{pill.txt}</span>
           </div>
 
+          {activeDemand ? (
+            <div className="ocard-ask-price">
+              <span>İlan fiyatı</span>
+              <strong>{formatPrice(activeDemand.price)}</strong>
+            </div>
+          ) : null}
+
           <p className="ocard-price">
             <span className="ocard-cur">₺</span>{num(m.price ?? 0)}
             {delta ? (
@@ -146,8 +154,6 @@ export function MessagesPage() {
           ) : isFirst ? (
             <div className="ocard-meta">
               <span>İlk teklif</span>
-              <span className="ocard-sep" />
-              <span><Icon name="Coins" size={13} /> {offer?.creditCost ?? '—'} kredi</span>
             </div>
           ) : (
             <div className="ocard-meta">
@@ -176,11 +182,9 @@ export function MessagesPage() {
             </div>
           ) : showActions ? (
             <div className="ocard-actions">
-              {iAmBuyer ? (
-                <button className="ocard-btn ocard-btn--accept" type="button" onClick={() => acceptOffer(offer!.id, me.id)}>
-                  <Icon name="Check" size={16} /> Kabul Et
-                </button>
-              ) : null}
+              <button className="ocard-btn ocard-btn--accept" type="button" onClick={() => acceptOffer(offer!.id, me.id)}>
+                <Icon name="Check" size={16} /> Kabul Et
+              </button>
               <button className="ocard-btn ocard-btn--counter" type="button" onClick={openCounter}>
                 <Icon name="ArrowLeftRight" size={16} /> Pazarlık
               </button>
@@ -259,7 +263,7 @@ export function MessagesPage() {
 
   return (
     <div className="page-stack">
-      <PageHeader title="Mesajlar" description="Anlaşma ve teklif sohbetlerini tek yerden yönet." />
+      <PageHeader title="Sohbetler" description="Anlaşma ve teklif sohbetlerini tek yerden yönet." />
       <div className="inbox-layout">
         <aside className="thread-list">
           <div className="thread-list-head">Sohbetler · {threads.length}</div>

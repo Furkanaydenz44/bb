@@ -1,16 +1,20 @@
 import { Link, useParams, useSearchParams } from 'react-router-dom';
-import { Icon, type IconName } from '../../components/Icon';
+import { Icon } from '../../components/Icon';
 import { PageHeader } from '../../components/PageHeader';
 import { categories } from '../../data/categories';
-import { getDemands, getUser } from '../../services/catalogService';
-import { categoryPath, demandPath, userBase } from '../../utils/routes';
+import { getUser } from '../../services/catalogService';
+import { useAppData } from '../../store/appData';
+import { demandPath, userBase } from '../../utils/routes';
 import { formatPrice, locationLabel } from '../../utils/format';
+import { DemandCard } from './DemandCard';
+import { getTopCategories } from '../../services/browsingHistory';
 
 export function ExplorePage() {
   const { username = '@ahmetsafak' } = useParams();
   const [searchParams] = useSearchParams();
   const q = (searchParams.get('q') ?? '').trim();
   const activeUser = getUser(username);
+  const { getDemands } = useAppData();
   const demands = getDemands();
   const base = userBase(activeUser.username);
 
@@ -24,24 +28,28 @@ export function ExplorePage() {
       )
     : [];
 
+  const recentDemands = demands.slice(0, 4);
+
+  const topCategoryIds = getTopCategories(activeUser.id, 2);
+  const topCategoryNames = topCategoryIds
+    .map((id) => categories.find((c) => c.id === id)?.shortName)
+    .filter((name): name is string => Boolean(name));
+  const recommendedDemands = topCategoryIds.length
+    ? topCategoryIds
+        .flatMap((id) => demands.filter((d) => d.categoryId === id))
+        .filter((d, index, all) => all.findIndex((other) => other.id === d.id) === index)
+        .slice(0, 4)
+    : [];
+
   return (
     <div className="page-stack">
-      <PageHeader
-        title="Keşfet"
-        description="Aradığın ürünü üstteki çubuktan ara ya da kategoriden gözat."
-        actions={
-          <Link className="button primary" to={`${base}/talep-ac`}>
-            <Icon name="Plus" size={17} />
-            Talep Aç
-          </Link>
-        }
-      />
+      <PageHeader title="Keşfet" />
 
       {q ? (
         <>
           <section className="section-heading">
             <div>
-              <h2>“{q}” için {results.length} sonuç</h2>
+              <h2>"{q}" için {results.length} sonuç</h2>
               <p>Talep başlığı, açıklama, şehir ve kategoride eşleşen talepler.</p>
             </div>
             <Link className="button ghost" to={`${base}/kesfet`}>
@@ -71,43 +79,34 @@ export function ExplorePage() {
         </>
       ) : (
         <>
-          <div className="section-heading">
-            <div>
-              <h2>Kategoriler</h2>
-              <p>Bir kategoriye gir, o kategorideki açık alıcı taleplerini gör.</p>
-            </div>
-          </div>
-          <section className="category-board">
-            {categories.map((category) => {
-              const count = demands.filter((demand) => demand.categoryId === category.id).length;
-              return (
-                <Link key={category.id} className="category-tile" to={categoryPath(activeUser.username, category.id)}>
-                  <Icon name={category.icon as IconName} size={22} />
-                  <strong>{category.name}</strong>
-                  <span>{count} aktif talep</span>
-                  <Icon name="ChevronRight" size={18} />
-                </Link>
-              );
-            })}
-          </section>
+          {recommendedDemands.length > 0 && (
+            <>
+              {/* Sana Özel */}
+              <div className="section-heading">
+                <div>
+                  <h2>Sana Özel</h2>
+                  <p>{topCategoryNames.join(' ve ')} kategorilerinde gezindin — bunlar ilgini çekebilir.</p>
+                </div>
+              </div>
+              <section className="demand-grid">
+                {recommendedDemands.map((demand) => (
+                  <DemandCard key={demand.id} demand={demand} />
+                ))}
+              </section>
+            </>
+          )}
 
+          {/* Son Talepler */}
           <div className="section-heading">
             <div>
-              <h2>Araçlar</h2>
-              <p>Talebe sunum yapmadan önce kredi maliyetini hesapla.</p>
+              <h2>Son Talepler</h2>
+              <p>Platformdaki en yeni alıcı talepleri — sunum yapmaya başla.</p>
             </div>
           </div>
-          <section className="explore-tools">
-            <Link className="tool-row" to={`${base}/araclar/teklif-kredisi`}>
-              <Icon name="Calculator" size={18} />
-              <span>Teklif kredisi hesaplayıcı</span>
-              <Icon name="ChevronRight" size={16} />
-            </Link>
-            <Link className="tool-row" to={`${base}/kredi`}>
-              <Icon name="WalletCards" size={18} />
-              <span>Kredi paketleri</span>
-              <Icon name="ChevronRight" size={16} />
-            </Link>
+          <section className="demand-grid">
+            {recentDemands.map((demand) => (
+              <DemandCard key={demand.id} demand={demand} />
+            ))}
           </section>
         </>
       )}

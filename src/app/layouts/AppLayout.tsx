@@ -7,12 +7,16 @@ import { useAppData } from '../../store/appData';
 import { categories, categoryGroups } from '../../data/categories';
 import { categoryPath, userBase } from '../../utils/routes';
 
-const primaryNav: Array<{ label: string; icon: IconName; path: string }> = [
+const navBeforeCategories: Array<{ label: string; icon: IconName; path: string }> = [
+  { label: 'Talep Aç', icon: 'Plus', path: 'talep-ac' },
   { label: 'Talepler', icon: 'Home', path: '' },
   { label: 'Keşfet', icon: 'Search', path: 'kesfet' },
-  { label: 'Talep Aç', icon: 'Plus', path: 'talep-ac' },
-  { label: 'Mesajlar', icon: 'MessageCircle', path: 'mesajlar' },
-  { label: 'Profil', icon: 'User', path: 'profil' },
+];
+
+const navAfterCategories: Array<{ label: string; icon: IconName; path: string }> = [
+  { label: 'Sunumlarım', icon: 'Send', path: 'sunumlarim' },
+  { label: 'Taleplerim', icon: 'ListChecks', path: 'taleplerim' },
+  { label: 'Favorilerim', icon: 'Heart', path: 'favorilerim' },
 ];
 
 export function AppLayout() {
@@ -23,9 +27,9 @@ export function AppLayout() {
   const [query, setQuery] = useState('');
   const [catOpen, setCatOpen] = useState(false);
   const [activeCat, setActiveCat] = useState(categories[0].id);
-  const catTriggerRef = useRef<HTMLButtonElement>(null);
+  const catTriggerRef = useRef<HTMLAnchorElement>(null);
   const session = getCurrentUser();
-  const { creditsOf, unreadCount, getUserNotifications, markNotificationsRead } = useAppData();
+  const { unreadCount, getUserNotifications, markNotificationsRead, deleteNotification } = useAppData();
 
   // Giriş yoksa giriş ekranına; URL başka bir kullanıcıyı gösteriyorsa kendi alanına döndür.
   if (!session) return <Navigate to="/giris" replace />;
@@ -36,7 +40,6 @@ export function AppLayout() {
   const activeUser = session;
   const base = userBase(activeUser.username);
   const accounts = getAllUsers();
-  const credits = creditsOf(activeUser.id);
   const unread = unreadCount(activeUser.id);
   const notifs = getUserNotifications(activeUser.id).slice(0, 10);
 
@@ -56,11 +59,9 @@ export function AppLayout() {
     navigate(`${base}/kesfet${q ? `?q=${encodeURIComponent(q)}` : ''}`);
   }
   function toggleNotif() {
-    setNotifOpen((open) => {
-      const next = !open;
-      if (next && unread) markNotificationsRead(activeUser.id);
-      return next;
-    });
+    const next = !notifOpen;
+    setNotifOpen(next);
+    if (next && unread) markNotificationsRead(activeUser.id);
   }
 
   return (
@@ -68,10 +69,7 @@ export function AppLayout() {
       <header className="topbar2">
         <div className="topbar2-main">
           <NavLink className="wordmark2" to={base} aria-label="Bulbana ana sayfa">
-            <span className="brand-mark small">
-              <Icon name="Search" size={18} />
-            </span>
-            Bulbana
+            <img src="/bulbana-logo.png" alt="Bulbana" className="wordmark-logo" />
           </NavLink>
 
           <form className="topsearch" onSubmit={onSearch} role="search">
@@ -86,11 +84,6 @@ export function AppLayout() {
           </form>
 
           <div className="topactions">
-            <NavLink className="credit-pill" to={`${base}/kredi`}>
-              <Icon name="WalletCards" size={16} />
-              {credits} kredi
-            </NavLink>
-
             <div className="bell-wrap">
               <button type="button" className="icon-btn" onClick={toggleNotif} aria-label="Bildirimler">
                 <Icon name="Bell" size={19} />
@@ -111,6 +104,18 @@ export function AppLayout() {
                         >
                           <span className="notif-dot" />
                           <span className="notif-text">{n.text}</span>
+                          <button
+                            type="button"
+                            className="notif-delete"
+                            aria-label="Bildirimi sil"
+                            onClick={(event) => {
+                              event.preventDefault();
+                              event.stopPropagation();
+                              deleteNotification(n.id);
+                            }}
+                          >
+                            <Icon name="X" size={28} strokeWidth={2.75} />
+                          </button>
                         </NavLink>
                       ))
                     ) : (
@@ -121,17 +126,31 @@ export function AppLayout() {
               )}
             </div>
 
+            <NavLink className="icon-btn" to={`${base}/mesajlar`} aria-label="Sohbetler">
+              <Icon name="MessageCircle" size={19} />
+            </NavLink>
+
             <div className="acct">
-              <button type="button" className="acct-trigger" onClick={() => setMenuOpen((open) => !open)}>
+              <button type="button" className="acct-trigger acct-trigger-avatar" onClick={() => setMenuOpen((open) => !open)}>
                 <Avatar label={activeUser.avatar} />
-                <span className="user-name">{activeUser.name}</span>
-                <Icon name="ChevronRight" size={15} className="acct-chev" />
               </button>
               {menuOpen && (
                 <>
                   <button type="button" className="acct-backdrop" aria-label="Kapat" onClick={() => setMenuOpen(false)} />
                   <div className="acct-menu">
-                    <div className="acct-menu-label">Demo hesabı değiştir</div>
+                    <div className="acct-profile-head">
+                      <span className="acct-av acct-av-lg">{activeUser.avatar}</span>
+                      <div className="acct-profile-info">
+                        <b>{activeUser.name}</b>
+                        <small>@{activeUser.username}</small>
+                      </div>
+                    </div>
+                    <NavLink className="acct-menu-link" to={`${base}/profil`} onClick={() => setMenuOpen(false)}>
+                      <Icon name="User" size={15} />
+                      <span>Profil</span>
+                    </NavLink>
+                    <div className="acct-divider" />
+                    <div className="acct-menu-label">Hesap değiştir</div>
                     {accounts.map((user) => (
                       <button
                         key={user.id}
@@ -158,6 +177,20 @@ export function AppLayout() {
         </div>
 
         <nav className="topbar2-nav" aria-label="Ana menü">
+          {navBeforeCategories.map((item) => (
+            <NavLink
+              key={item.path || 'home'}
+              to={item.path ? `${base}/${item.path}` : base}
+              end={item.path === ''}
+              className={({ isActive }) =>
+                `topnav-link${item.path === '' ? ' topnav-talepler' : ''}${item.path === 'talep-ac' ? ' topnav-cta' : ''}${isActive ? ' active' : ''}`
+              }
+            >
+              <Icon name={item.icon} size={17} />
+              {item.label}
+            </NavLink>
+          ))}
+
           <div
             className="cat-mega-wrap"
             onMouseEnter={() => setCatOpen(true)}
@@ -172,18 +205,18 @@ export function AppLayout() {
               if (!event.currentTarget.contains(event.relatedTarget as Node)) setCatOpen(false);
             }}
           >
-            <button
+            <NavLink
               ref={catTriggerRef}
-              type="button"
-              className={`topnav-link cat-trigger${catOpen ? ' active' : ''}`}
-              onClick={() => setCatOpen((open) => !open)}
+              to={`${base}/kategoriler`}
+              className={({ isActive }) => `topnav-link cat-trigger${catOpen ? ' active' : ''}${isActive ? ' active' : ''}`}
+              onClick={() => setCatOpen(false)}
               aria-expanded={catOpen}
               aria-haspopup="true"
               aria-controls="cat-mega"
             >
               <Icon name="Menu" size={17} />
               Kategoriler
-            </button>
+            </NavLink>
 
             {catOpen && (
               <div className="cat-mega" id="cat-mega" aria-label="Kategoriler">
@@ -207,7 +240,7 @@ export function AppLayout() {
                     <div key={group.title} className="cat-col">
                       <NavLink
                         className="cat-col-head"
-                        to={categoryPath(activeUser.username, activeCat)}
+                        to={`${categoryPath(activeUser.username, activeCat)}?group=${encodeURIComponent(group.title)}`}
                         onClick={() => setCatOpen(false)}
                       >
                         {group.title}
@@ -230,12 +263,13 @@ export function AppLayout() {
             )}
           </div>
 
-          {primaryNav.map((item) => (
+          {navAfterCategories.map((item) => (
             <NavLink
-              key={item.path || 'home'}
-              to={item.path ? `${base}/${item.path}` : base}
-              end={item.path === ''}
-              className={`topnav-link${item.path === 'talep-ac' ? ' cta' : ''}`}
+              key={item.path}
+              to={`${base}/${item.path}`}
+              className={({ isActive }) =>
+                `topnav-link${item.path === 'taleplerim' ? ' topnav-taleplerim' : ''}${item.path === 'sunumlarim' ? ' topnav-sunumlarim' : ''}${item.path === 'favorilerim' ? ' topnav-favorilerim' : ''}${isActive ? ' active' : ''}`
+              }
             >
               <Icon name={item.icon} size={17} />
               {item.label}

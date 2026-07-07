@@ -1,6 +1,6 @@
 import { categories } from '../data/categories';
 import { demands, offers, presentations } from '../data/demands';
-import type { CategoryId, UserId } from '../data/types';
+import type { UserId } from '../data/types';
 import { demandSlug } from '../utils/routes';
 import { findUser, getAllUsers } from './session';
 
@@ -34,18 +34,4 @@ export function getDemandOffers(demandId: string) {
 
 export function getSellerDemands(userId: UserId) {
   return demands.filter((demand) => demand.ownerId !== userId);
-}
-
-export function offerCreditEstimate(price: number, categoryId: CategoryId) {
-  const categoryMultiplier: Record<CategoryId, number> = {
-    foto: 1.2,
-    muzik: 1.2,
-    sneaker: 1.1,
-    saat: 1.5,
-    koleksiyon: 1.4,
-    teknoloji: 1.05,
-    oto: 1.3,
-  };
-  const rate = price <= 1000 ? 0.01 : price <= 5000 ? 0.006 : price <= 15000 ? 0.0035 : price <= 50000 ? 0.002 : 0.0012;
-  return Math.max(1, Math.min(30, Math.round((price * rate * categoryMultiplier[categoryId] * 0.9) / 10)));
 }

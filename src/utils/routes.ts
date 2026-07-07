@@ -32,3 +32,7 @@ export function demandPath(username: string, demand: Demand) {
 export function presentationPath(username: string, demand: Demand, presentationId: string) {
   return `${demandPath(username, demand)}/sunum/${presentationId}`;
 }
+
+export function demandPresentationsPath(username: string, demand: Demand) {
+  return `${demandPath(username, demand)}/sunumlar`;
+}

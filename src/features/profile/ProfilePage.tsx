@@ -3,41 +3,30 @@ import { Avatar } from '../../components/Avatar';
 import { Icon } from '../../components/Icon';
 import { PageHeader } from '../../components/PageHeader';
 import { imageSrc } from '../../data/images';
-import { getDemands, getUser } from '../../services/catalogService';
+import { getUser } from '../../services/catalogService';
 import { useAppData } from '../../store/appData';
 import { userLevel } from '../../lib/level';
-import { demandPath, userBase } from '../../utils/routes';
+import { demandPath } from '../../utils/routes';
 import { formatPrice, locationLabel } from '../../utils/format';
 
 export function ProfilePage() {
   const { username = '@ahmetsafak' } = useParams();
   const user = getUser(username);
-  const { creditsOf } = useAppData();
+  const { getDemands } = useAppData();
   const ownedDemands = getDemands().filter((demand) => demand.ownerId === user.id);
   const totalBudget = ownedDemands.reduce((sum, demand) => sum + demand.price, 0);
-  const base = userBase(user.username);
   const lvl = userLevel(user);
 
   const stats = [
     { value: String(user.sales), label: 'İşlem' },
     { value: String(user.reviews), label: 'Değerlendirme' },
     { value: `%${user.completionRate}`, label: 'Tamamlama' },
-    { value: String(creditsOf(user.id)), label: 'Kredi' },
     { value: formatPrice(totalBudget), label: 'Bütçe' },
   ];
 
   return (
     <div className="page-stack">
-      <PageHeader
-        title="Profil"
-        description="Güven sinyalleri, işlem performansı ve kullanıcıya bağlı ilan görünümü."
-        actions={
-          <Link className="button ghost" to={`${base}/kredi`}>
-            <Icon name="WalletCards" size={17} />
-            Krediler
-          </Link>
-        }
-      />
+      <PageHeader title="Profil" description="Güven sinyalleri, işlem performansı ve kullanıcıya bağlı ilan görünümü." />
 
       <div className="pf">
         <div className="pf-id">

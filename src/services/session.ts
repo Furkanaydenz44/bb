@@ -67,7 +67,6 @@ export function createAccount(input: { name: string; city: string }): User {
     name,
     avatar: initials(name),
     city: input.city.trim() || 'İstanbul',
-    credits: 100,
     score: 5,
     reviews: 0,
     sales: 0,
