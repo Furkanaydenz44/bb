@@ -1,0 +1,135 @@
+@import "tailwindcss";
+
+/* ── BulBana design tokens (from the design handoff) ──────────────────
+   Reverse-marketplace: violet primary, lime accent, purple-tinted neutrals.
+   Light theme only — the source design has no dark variant. */
+@theme {
+  /* Surfaces */
+  --color-page: #f6f4fa;
+  --color-card: #ffffff;
+  --color-subtle: #fbfafe;
+  --color-hairline: #f1edf8;
+
+  /* Ink (purple-tinted neutrals) */
+  --color-ink-900: #2e1a47;
+  --color-ink-700: #4b4263;
+  --color-ink-500: #6a6280;
+  --color-ink-400: #8b84a3;
+  --color-ink-300: #a6a0b8;
+
+  /* Primary (violet) */
+  --color-primary: #7c3aed;
+  --color-primary-hover: #5b21b6;
+  --color-primary-soft: #f3e8ff;
+  --color-primary-soft-hover: #e9d5ff;
+
+  /* Accent (lime) */
+  --color-accent: #bef264;
+  --color-accent-hover: #a3e635;
+  --color-accent-soft: #ecfccb;
+  --color-accent-ink: #4d7c0f;
+
+  /* Dark surfaces */
+  --color-footer: #1f1235;
+  --color-footer-line: #3b2b60;
+
+  /* Lines */
+  --color-border: #e7e2f0;
+  --color-border-input: #dad3e8;
+
+  /* Semantic */
+  --color-danger: #b4443e;
+  --color-danger-soft: #fbeae9;
+  --color-danger-line: #eed4d2;
+  --color-star: #c99a2e;
+
+  /* Radii */
+  --radius-card: 16px;
+  --radius-panel: 20px;
+  --radius-control: 12px;
+
+  /* Shadows (design uses borders, not shadows, except overlays) */
+  --shadow-pop: 0 16px 40px rgb(46 26 71 / 0.16);
+  --shadow-hero: 0 18px 44px rgb(46 26 71 / 0.12);
+}
+
+/* Map the Figtree font var (set by next/font on <html>) to the sans family */
+@theme inline {
+  --font-sans: var(--font-figtree), "Helvetica Neue", Helvetica, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+/* Sayfa & adım geçiş animasyonları — Tailwind v4 @theme yolu (animate-* utility'si).
+   reduced-motion'da aşağıdaki @layer base bloğu otomatik kapatır. */
+@theme {
+  /* Sayfa geçişi: yalnızca opaklık — koca içerik bloğunu kaydırmadığımız için
+     hiç "zıplama"/takılma olmaz, yumuşak bir çapraz geçiş hissi verir. */
+  --animate-page-in: bb-page-in 0.24s ease-out both;
+  --animate-step-in: bb-step-in 0.24s ease-out both;
+
+  @keyframes bb-page-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  /* Adım geçişi: fade + çok hafif yukarı kayma (küçük kart, güvenli) */
+  @keyframes bb-step-in {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
+
+/* Base styles must live in @layer base so Tailwind utilities (later layer)
+   can override them — e.g. `text-white` on a link-styled button. */
+@layer base {
+  body {
+    background: var(--color-page);
+    color: var(--color-ink-900);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    letter-spacing: -0.006em;
+  }
+
+  a {
+    color: var(--color-primary);
+    text-decoration: none;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* Reference-image placeholder (design convention: hatched swatch) */
+@layer components {
+  .ref-image {
+    background: repeating-linear-gradient(
+      45deg,
+      #f1edf8 0px,
+      #f1edf8 8px,
+      #e5dff1 8px,
+      #e5dff1 16px
+    );
+  }
+}
+
